@@ -11,6 +11,6 @@ namespace eTuristickaAgencija.Models.Request
         public string Naziv { get; set; }
         
         public int? GradId { get; set; }
-        //public byte?[] Slika { get; set; }
+        public byte[] Slika { get; set; }
     }
 }

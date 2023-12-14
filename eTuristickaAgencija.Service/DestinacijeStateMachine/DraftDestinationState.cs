@@ -33,12 +33,12 @@ namespace eTuristickaAgencija.Service.DestinacijeStateMachine
         }
         public override async Task<Destinacija> Activate(int id)
         {
-
             _logger.LogInformation($"Aktivacija destinacije: {id}");
 
             _logger.LogWarning($"W: Aktivacija destinacije: {id}");
 
             _logger.LogError($"E: Aktivacija destinacije: {id}");
+
             var set = _context.Set<Database.Destinacija>();
 
             var entity = await set.FindAsync(id);
@@ -47,29 +47,68 @@ namespace eTuristickaAgencija.Service.DestinacijeStateMachine
 
             await _context.SaveChangesAsync();
 
-            /*var factory = new ConnectionFactory { HostName = "localhost" };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
 
-            channel.QueueDeclare(queue: "product_added",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
+            //var factory = new ConnectionFactory { HostName = "localhost" };
+            //using var connection = factory.CreateConnection();
+            //using var channel = connection.CreateModel();
 
-            string message = $"{entity.Id}, {entity.Naziv}";
-            var body = Encoding.UTF8.GetBytes(message);
 
-            channel.BasicPublish(exchange: string.Empty,
-                                 routingKey: "hello",
-                                 basicProperties: null,
-                                 body: body);*/
-            var mappedEntity= _mapper.Map<Destinacija>(entity);
+            //string message = "";
+
+            //var body = Encoding.UTF8.GetBytes(message);
+
+            //channel.BasicPublish(exchange: string.Empty,
+            //                     routingKey: "product_added",
+            //                     basicProperties: null,
+            //                     body: body);
+
+            var mappedEntity = _mapper.Map<Models.Destinacija>(entity);
+
             using var bus = RabbitHutch.CreateBus("host=localhost");
 
             bus.PubSub.Publish(mappedEntity);
+
             return mappedEntity;
         }
+
+        //    public override async Task<Destinacija> Activate(int id){ 
+        //    _logger.LogInformation($"Aktivacija destinacije: {id}");
+
+        //     _logger.LogWarning($"W: Aktivacija destinacije: {id}");
+
+        //   _logger.LogError($"E: Aktivacija destinacije: {id}");
+
+        // var set = _context.Set<Database.Destinacija>();
+
+        // var entity = await set.FindAsync(id);
+
+        //            entity.StateMachine = "active";
+
+        //          await _context.SaveChangesAsync();
+
+
+        //var factory = new ConnectionFactory { HostName = "localhost" };
+        //using var connection = factory.CreateConnection();
+        //using var channel = connection.CreateModel();
+
+
+        //string message = "";
+
+        //var body = Encoding.UTF8.GetBytes(message);
+
+        //channel.BasicPublish(exchange: string.Empty,
+        //                     routingKey: "product_added",
+        //                     basicProperties: null,
+        //                     body: body);
+
+        //       var mappedEntity = _mapper.Map<Models.Destinacija>(entity);
+
+        //       using var bus = RabbitHutch.CreateBus("host=localhost");
+
+        //     bus.PubSub.Publish(mappedEntity);
+
+        //   return mappedEntity;
+        //}
         public override async Task<List<string>> AllowedActions()
         {
             var list = await base.AllowedActions();

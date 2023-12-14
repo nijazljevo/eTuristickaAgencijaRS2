@@ -50,7 +50,6 @@ class _KontinentDetailsScreenState extends State<KontinentDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreenWidget(
-      // ignore: sort_child_properties_last
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
@@ -61,20 +60,34 @@ class _KontinentDetailsScreenState extends State<KontinentDetailsScreen> {
                 padding: const EdgeInsets.all(10),
                 child: ElevatedButton(
                   onPressed: () async {
-                    _formKey.currentState?.saveAndValidate();
-
-                    try {
-                      if (widget.kontinent == null) {
-                        await _kontinentProvider.insert(_formKey.currentState?.value);
-                      } else {
-                        await _kontinentProvider.update(widget.kontinent!.id!, _formKey.currentState?.value);
+                    if (_formKey.currentState?.saveAndValidate() ?? false) {
+                      try {
+                        if (widget.kontinent == null) {
+                          await _kontinentProvider.insert(_formKey.currentState?.value);
+                        } else {
+                          await _kontinentProvider.update(widget.kontinent!.id!, _formKey.currentState?.value);
+                        }
+                      } on Exception catch (e) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text("Error"),
+                            content: Text(e.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("OK"),
+                              ),
+                            ],
+                          ),
+                        );
                       }
-                    } on Exception catch (e) {
+                    } else {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) => AlertDialog(
-                          title: const Text("Error"),
-                          content: Text(e.toString()),
+                          title: const Text("Validation Error"),
+                          content: const Text("Molimo vas da popunite sva obavezna polja."),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
@@ -85,7 +98,7 @@ class _KontinentDetailsScreenState extends State<KontinentDetailsScreen> {
                       );
                     }
                   },
-                  child: const Text('Sacuvaj'),
+                  child: const Text('Sačuvaj'),
                 ),
               ),
             ],
@@ -102,10 +115,14 @@ class _KontinentDetailsScreenState extends State<KontinentDetailsScreen> {
       child: Column(
         children: [
           FormBuilderTextField(
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Naziv",
+              errorText: _formKey.currentState?.fields['naziv']?.errorText,
             ),
             name: "naziv",
+            validator: FormBuilderValidators.compose([
+              FormBuilderValidators.required(context, errorText: "Polje je obavezno."),
+            ]),
             initialValue: widget.kontinent?.naziv ?? '',
           ),
         ],

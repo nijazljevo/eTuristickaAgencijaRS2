@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace eTuriatickaAgencija.Controllers
 {
     [Authorize]
-    public class BaseCRUDController<T, TSearch, TInsert, TUpdate> : BaseCRUDController<T, TSearch>
-        where T : class where TSearch : class where TInsert : class where TUpdate : class
+    public class BaseCRUDController<T, TSearch, TInsert, TUpdate> : BaseController<T, TSearch>
+        where T : class where TSearch : class 
     {
         protected new readonly ICRUDService<T, TSearch, TInsert, TUpdate> _service;
-        public BaseCRUDController(ICRUDService<T, TSearch, TInsert, TUpdate> service) : base(service)
+        protected readonly ILogger<BaseController<T, TSearch>> _logger;
+        public BaseCRUDController(ILogger<BaseController<T, TSearch>> logger, ICRUDService<T, TSearch, TInsert, TUpdate> service) : base(logger,service)
         {
+            _logger = logger;
             _service = service;
         }
 
@@ -22,7 +24,6 @@ namespace eTuriatickaAgencija.Controllers
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Admin")]
         public virtual T Update(int id, [FromBody] TUpdate update)
         {
             var results = ((ICRUDService<T, TSearch, TInsert, TUpdate>)this.Service).Update(id, update);

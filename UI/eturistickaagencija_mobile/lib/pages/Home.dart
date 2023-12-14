@@ -14,15 +14,22 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Future<List<Destinacija>?> getPreporuceneDestinacije() async {
-    try {
-      final preporuceneDestinacije = await APIService.get('Destinacije/preporuceno', APIService.korisnikId);
-       return preporuceneDestinacije?.map((i) => Destinacija.fromJson(i)).toList();
-    } catch (e) {
-      print('Error: $e');
+ Future<List<Destinacija>?> getPreporuceneDestinacije() async {
+  try {
+    final preporuceneDestinacije = await APIService.get('Destinacije/preporuceno', APIService.korisnikId);
+    print('Preporučene destinacije dobivene: $preporuceneDestinacije');
+    if (preporuceneDestinacije != null) {
+      return preporuceneDestinacije.map((i) => Destinacija.fromJson(i)).toList();
+    } else {
+      print('Nema podataka za preporučene destinacije.');
       return null;
     }
+  } catch (e) {
+    print('Greška prilikom dohvata preporučenih destinacija: $e');
+    return null;
   }
+}
+
 
   Widget preporucenaHotelWidget(Destinacija destinacija) {
     return InkWell(

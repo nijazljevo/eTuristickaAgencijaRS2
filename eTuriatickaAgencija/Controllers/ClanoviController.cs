@@ -12,8 +12,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class ClanoviController : BaseCRUDController<eTuristickaAgencija.Models.Clan, ClanSearchObject, ClanInsertRequest, ClanUpdateRequest>
     {
-        public ClanoviController(IClanService clanServis) : base(clanServis)
+        private readonly IClanService _clanServis;
+        public ClanoviController(ILogger<BaseController<Clan, ClanSearchObject>> logger, IClanService clanServis) : base(logger, clanServis)
         {
+            _clanServis = clanServis;
         }
 
         //Dodavanje bez authorizacije

@@ -21,7 +21,8 @@ class DestinacijaDetailsScreen extends StatefulWidget {
   DestinacijaDetailsScreen({Key? key, this.destinacija}) : super(key: key);
 
   @override
-  State<DestinacijaDetailsScreen> createState() => _DestinacijaDetailsScreenState();
+  State<DestinacijaDetailsScreen> createState() =>
+      _DestinacijaDetailsScreenState();
 }
 
 class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
@@ -35,7 +36,6 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _initialValue = {
       'naziv': widget.destinacija?.naziv,
@@ -48,18 +48,9 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
     initForm();
   }
 
-  @override
-  void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-
-   
-  }
-
-  Future initForm() async {
+  Future<void> initForm() async {
     gradResult = await _gradProvider.get();
     print(gradResult);
-
 
     setState(() {
       isLoading = false;
@@ -69,7 +60,6 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreenWidget(
-      // ignore: sort_child_properties_last
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
@@ -79,48 +69,77 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
               Padding(
                 padding: EdgeInsets.all(10),
                 child: ElevatedButton(
-                    onPressed: () async {
-                      _formKey.currentState?.saveAndValidate();
+                  onPressed: () async {
+                    if (_formKey.currentState?.saveAndValidate() ?? false) {
+                      Map<String, dynamic> request =
+                          Map<String, dynamic>.from(
+                              _formKey.currentState!.value);
 
-                      print(_formKey.currentState?.value);
-                      print(_formKey.currentState?.value['naziv']);
+                      // Provjeri i dodaj sliku samo ako je odabrana
+                      if (_base64Image != null && _base64Image!.isNotEmpty) {
+                        request['slika'] = _base64Image;
+                      }
 
-                      var request = new Map.from(_formKey.currentState!.value);
-
-                      request['slika'] = _base64Image;
-
-                      print(request['slika']);
-                      
                       try {
                         if (widget.destinacija == null) {
-                          await _destinacijaProvider
-                              .insert(request);
+                          await _destinacijaProvider.insert(request);
                         } else {
                           await _destinacijaProvider.update(
-                              widget.destinacija!.id!,
-                              request);
+                              widget.destinacija!.id!, request);
                         }
+                      } on FormatException catch (e) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: Text("Greška"),
+                            content: Text("Neispravan format podataka slike."),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("OK"),
+                              )
+                            ],
+                          ),
+                        );
                       } on Exception catch (e) {
                         showDialog(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                                  title: Text("Error"),
-                                  content: Text(e.toString()),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text("OK"))
-                                  ],
-                                ));
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: Text("Greška"),
+                            content: Text(e.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("OK"),
+                              )
+                            ],
+                          ),
+                        );
                       }
-                    },
-                    child: Text("Sačuvaj")),
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          title: Text("Greška pri validaciji"),
+                          content: Text("Molimo vas da popunite sva obavezna polja."),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text("OK"),
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: Text("Sačuvaj"),
+                ),
               )
             ],
           )
         ],
       ),
-      title: this.widget.destinacija?.naziv ?? "Destinacija details",
+      title: this.widget.destinacija?.naziv ?? "Detalji destinacije",
     );
   }
 
@@ -131,11 +150,19 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
       child: Column(children: [
         Row(
           children: [
-          
             Expanded(
               child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Naziv"),
+                decoration: InputDecoration(
+                  labelText: "Naziv",
+                  errorText: _formKey.currentState?.fields['naziv']?.errorText,
+                ),
                 name: "naziv",
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(
+                    context,
+                    errorText: "Polje 'Naziv' je obavezno.",
+                  ),
+                ]),
               ),
             ),
           ],
@@ -143,73 +170,79 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
         Row(
           children: [
             Expanded(
-                child: FormBuilderDropdown<String>(
-              name: 'gradId',
-              decoration: InputDecoration(
-                labelText: 'Grad',
-                suffix: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _formKey.currentState!.fields['gradId']?.reset();
-                  },
+              child: FormBuilderDropdown<String>(
+                name: 'gradId',
+                decoration: InputDecoration(
+                  labelText: 'Grad',
+                  errorText: _formKey.currentState?.fields['gradId']?.errorText,
+                  suffix: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _formKey.currentState!.fields['gradId']?.reset();
+                    },
+                  ),
+                  hintText: 'Izaberite Grad',
                 ),
-                hintText: 'Select Gender',
+                items: gradResult?.result
+                        .map((item) => DropdownMenuItem(
+                              alignment: AlignmentDirectional.center,
+                              value: item.id!.toString(),
+                              child: Text(item.naziv ?? ""),
+                            ))
+                        .toList() ??
+                    [],
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(
+                    context,
+                    errorText: "Polje 'Grad' je obavezno.",
+                  ),
+                ]),
               ),
-              items: gradResult?.result
-                      .map((item) => DropdownMenuItem(
-                            alignment: AlignmentDirectional.center,
-                            value: item.id!.toString(),
-                            child: Text(item.naziv ?? ""),
-                          ))
-                      .toList() ??
-                  [],
-            )),
+            ),
             SizedBox(
               width: 10,
             ),
-          
-         
           ],
         ),
         Row(
           children: [
             Expanded(
-                child: FormBuilderField(
-              name: 'imageId',
-              builder: ((field) {
-                return InputDecorator(
-                  decoration: InputDecoration(
+              child: FormBuilderField(
+                name: 'slika',  // koristi 'slika' umjesto 'imageId'
+                builder: ((field) {
+                  return InputDecorator(
+                    decoration: InputDecoration(
                       label: Text('Odaberite sliku'),
-                      errorText: field.errorText),
-                  child: ListTile(
-                    leading: Icon(Icons.photo),
-                    title: Text("Select image"),
-                    trailing: Icon(Icons.file_upload),
-                    onTap: getImage,
-                  ),
-                );
-              }),
-            ))
+                      errorText: field.errorText,
+                    ),
+                    child: ListTile(
+                      leading: Icon(Icons.photo),
+                      title: Text("Odaberite sliku"),
+                      trailing: Icon(Icons.file_upload),
+                      onTap: getImage,
+                    ),
+                  );
+                }),
+              ),
+            ),
           ],
         )
       ]),
     );
   }
-  
+
   File? _image;
   String? _base64Image;
 
-Future getImage() async {
-  var result = await FilePicker.platform.pickFiles(type: FileType.image);
+  Future<void> getImage() async {
+    var result = await FilePicker.platform.pickFiles(type: FileType.image);
 
-  if (result != null && result.files.isNotEmpty) {
-    var filePath = result.files.single.path;
-    if (filePath != null) {
-      _image = File(filePath);
-      _base64Image = base64Encode(_image!.readAsBytesSync());
+    if (result != null && result.files.isNotEmpty) {
+      var filePath = result.files.single.path;
+      if (filePath != null) {
+        _image = File(filePath);
+        _base64Image = base64Encode(_image!.readAsBytesSync());
+      }
     }
   }
-}
-
-
 }

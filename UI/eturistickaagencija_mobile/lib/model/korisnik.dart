@@ -7,9 +7,6 @@ class Korisnik {
   final String prezime;
   final String korisnikoIme;
   final String email;
-  final String? password;
-  final String? passwordPotvrda;
-  final int? ulogaId;
 
   Korisnik({
     required this.id,
@@ -17,9 +14,6 @@ class Korisnik {
     required this.prezime,
     required this.korisnikoIme,
     required this.email,
-    this.password,
-    this.passwordPotvrda,
-    this.ulogaId
   });
 
   factory Korisnik.fromJson(Map<String, dynamic> json) {
@@ -29,9 +23,6 @@ class Korisnik {
       prezime: json['prezime'],
       korisnikoIme: json['korisnikoIme'],
       email: json['email'],
-      password: json['password'],
-      passwordPotvrda: json['passwordPotvrda'],
-      ulogaId: json['ulogaId'],
     );
   }
 
@@ -41,8 +32,5 @@ class Korisnik {
         "Prezime": prezime,
         "korisnikoIme": korisnikoIme,
         "email": email,
-        "password": password,
-        "passwordPotvrda": passwordPotvrda,
-        "ulogaId":ulogaId
       };
 }

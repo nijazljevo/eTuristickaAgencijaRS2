@@ -13,8 +13,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class KontinentiController : BaseCRUDController<eTuristickaAgencija.Models.Kontinent, KontinentSearchObject, KontinentInsertRequest, KontinentUpdateRequest>
     {
-        public KontinentiController(IKontinentService kontinentService) : base(kontinentService)
+        private readonly IKontinentService _kontinentService;
+        public KontinentiController(ILogger<BaseController<Kontinent, KontinentSearchObject>> logger, IKontinentService kontinentService) : base(logger, kontinentService)
         {
+            _kontinentService = kontinentService;
         }
 
         //Dodavanje bez authorizacije

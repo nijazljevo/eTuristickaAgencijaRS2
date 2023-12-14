@@ -4,19 +4,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace eTuriatickaAgencija.Controllers
 {
-    [ApiController]
+  //  [ApiController]
     [Route("[controller]")]
-    [Authorize]
-    public class BaseCRUDController<T, TSearch> : ControllerBase where T : class where TSearch : class
+   // [Authorize]
+    public class BaseController<T, TSearch> : ControllerBase where T : class where TSearch : class
     {
         public IService<T, TSearch> Service { get; set; }
+        protected readonly ILogger<BaseController<T, TSearch>> _logger;
 
-        public BaseCRUDController(IService<T, TSearch> service)
+        public BaseController(ILogger<BaseController<T, TSearch>> logger, IService<T, TSearch> service)
         {
+            _logger = logger;
             Service = service;
         }
+        
 
-        //Add GetById 
         [HttpGet]
         public IEnumerable<T> Get([FromQuery] TSearch search = null)
         {

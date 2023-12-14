@@ -13,8 +13,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class AgencijaController : BaseCRUDController<eTuristickaAgencija.Models.Agencija, AgencijaSearchObject, AgencijaInsertRequest, AgencijaUpdateRequest>
     {
-        public AgencijaController(IAgencijaService agencijaServis) : base(agencijaServis)
+        private readonly IAgencijaService _agencijaServis;
+        public AgencijaController(ILogger<BaseController<Agencija,AgencijaSearchObject>>logger, IAgencijaService agencijaServis) : base(logger,agencijaServis)
         {
+            _agencijaServis = agencijaServis;
         }
 
         //Dodavanje bez authorizacije

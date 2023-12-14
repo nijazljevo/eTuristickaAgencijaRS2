@@ -4,6 +4,8 @@ using eTuristickaAgencija.Models.Request;
 using eTuristickaAgencija.Models.Search_Objects;
 using eTuristickaAgencija.Service.Database;
 using eTuristickaAgencija.Service.DestinacijeStateMachine;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.ML;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,6 +62,14 @@ namespace eTuristickaAgencija.Service
 
             return await state.Activate(id);
         }
+        //     public async Task<Models.Destinacija> Activate(int id)
+        //   {
+        //     var entity = await _context.Destinacijas.FindAsync(id);
+
+        //   var state = _baseState.CreateState(entity.StateMachine);
+
+        // return await state.Activate(id);
+        // }
         public async Task<Models.Destinacija> Hide(int id)
         {
             var entity = await _context.Destinacijas.FindAsync(id);
@@ -74,6 +84,9 @@ namespace eTuristickaAgencija.Service
             var state = _baseState.CreateState(entity?.StateMachine ?? "initial");
             return await state.AllowedActions();
         }
+        static MLContext mlContext = null;
+        static object isLocked = new object();
+        static ITransformer model = null;
         public List<Models.Destinacija> GetPreporucenaDestinacija(int korisnikId)
         {
             var korisnici = _context.Korisniks.Where(e => e.Id != korisnikId).ToList();

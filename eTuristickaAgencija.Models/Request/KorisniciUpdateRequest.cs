@@ -11,6 +11,10 @@ namespace eTuristickaAgencija.Models.Request
         public string Ime { get; set; }
         [Required(AllowEmptyStrings = false)]
         public string Prezime { get; set; }
-        public byte?[] Slika { get; set; }
+         [Required(AllowEmptyStrings = false)]
+         public string KorisnikoIme { get; set; }
+         [Required(AllowEmptyStrings = false)]
+        public string Email { get; set; }
+        public byte[] Slika { get; set; }
     }
 }

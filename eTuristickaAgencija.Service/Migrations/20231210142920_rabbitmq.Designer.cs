@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eTuristickaAgencija.Service.Database;
 
@@ -11,9 +12,11 @@ using eTuristickaAgencija.Service.Database;
 namespace eTuristickaAgencija.Service.Migrations
 {
     [DbContext(typeof(TuristickaAgencijaContext))]
-    partial class TuristickaAgencijaContextModelSnapshot : ModelSnapshot
+    [Migration("20231210142920_rabbitmq")]
+    partial class rabbitmq
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -399,8 +402,8 @@ namespace eTuristickaAgencija.Service.Migrations
                             Email = "nijaz@gmail.com",
                             Ime = "Nijaz",
                             KorisnikoIme = "admin",
-                            LozinkaHash = "w/+CSQYJ1d700Ch9fD8302r/MkA=",
-                            LozinkaSalt = "3Lr/BpQQY+6njDnSD5Cw3Q==",
+                            LozinkaHash = "X/+vUioZak9IwR7KdQPskVqzyDo=",
+                            LozinkaSalt = "mK41+MH6PzzIMBUqVg4Epw==",
                             Prezime = "Ljevo",
                             UlogaId = 1
                         },
@@ -410,8 +413,8 @@ namespace eTuristickaAgencija.Service.Migrations
                             Email = "amna@gmail.com",
                             Ime = "Amna",
                             KorisnikoIme = "mobile",
-                            LozinkaHash = "gP7hyHxa8nrdZ0OMbX7WckErZ5U=",
-                            LozinkaSalt = "ssKlHW3BJMUQz4avEAjzOQ==",
+                            LozinkaHash = "mobMqAxMeVtVv2FOH4THGoskJ18=",
+                            LozinkaSalt = "onADX6oPz8UAHvJ3y5QGig==",
                             Prezime = "Spahalic",
                             UlogaId = 2
                         });
@@ -456,30 +459,6 @@ namespace eTuristickaAgencija.Service.Migrations
                             Komentar = "Odlicno",
                             KorisnikId = 2,
                             OcjenaUsluge = 5
-                        },
-                        new
-                        {
-                            Id = 7,
-                            DestinacijaId = 2,
-                            Komentar = "komentar",
-                            KorisnikId = 2,
-                            OcjenaUsluge = 4
-                        },
-                        new
-                        {
-                            Id = 8,
-                            DestinacijaId = 1,
-                            Komentar = "destinacija za preporuku",
-                            KorisnikId = 1,
-                            OcjenaUsluge = 5
-                        },
-                        new
-                        {
-                            Id = 9,
-                            DestinacijaId = 2,
-                            Komentar = "top",
-                            KorisnikId = 1,
-                            OcjenaUsluge = 4
                         });
                 });
 

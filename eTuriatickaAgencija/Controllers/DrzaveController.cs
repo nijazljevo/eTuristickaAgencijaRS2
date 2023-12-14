@@ -13,8 +13,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class DrzaveController : BaseCRUDController<eTuristickaAgencija.Models.Drzava, DrzavaSearchObject, DrzavaInsertRequest, DrzavaUpdateRequest>
     {
-        public DrzaveController(IDrzavaService drzavaService) : base(drzavaService)
+        private readonly IDrzavaService _drzavaService;
+        public DrzaveController(ILogger<BaseController<Drzava, DrzavaSearchObject>> logger, IDrzavaService drzavaService) : base(logger, drzavaService)
         {
+            _drzavaService = drzavaService;
         }
 
         //Dodavanje bez authorizacije

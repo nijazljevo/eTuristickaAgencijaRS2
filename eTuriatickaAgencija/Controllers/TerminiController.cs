@@ -12,8 +12,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class TerminiController : BaseCRUDController<eTuristickaAgencija.Models.Termin, TerminSearchObject, TerminInsertRequest, TerminUpdateRequest>
     {
-        public TerminiController(ITerminService terminService) : base(terminService)
+        private readonly ITerminService _terminService;
+        public TerminiController(ILogger<BaseController<Termin, TerminSearchObject>> logger, ITerminService terminService) : base(logger, terminService)
         {
+            _terminService = terminService;
         }
 
         //Dodavanje bez authorizacije

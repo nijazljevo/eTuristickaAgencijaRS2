@@ -10,7 +10,7 @@ namespace eTuristickaAgencija.Models.Request
         [Required]
         public string Naziv { get; set; }
         
-        public byte?[] Slika { get; set; }
+        public byte[] Slika { get; set; }
         [Required]
         public int? GradId { get; set; }
     }

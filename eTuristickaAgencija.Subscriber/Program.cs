@@ -1,48 +1,66 @@
-﻿// See https://aka.ms/new-console-template for more information
-using RabbitMQ.Client.Events;
+﻿using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using System.Text;
-using EasyNetQ;
-using eTuristickaAgencija.Models;
+using eTuristickaAgencija.Subscriber;
 
-Console.WriteLine("Hello, World!");
-/*var factory = new ConnectionFactory { HostName = "localhost" };
-using var connection = factory.CreateConnection();
-using var channel = connection.CreateModel();
+var factory = new ConnectionFactory
+{
+    HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "rabbitmq",
+    Port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672"),
+    UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest",
+    Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest",
+};
+factory.ClientProvidedName = "Rabbit Test Consumer";
+IConnection connection = factory.CreateConnection();
+IModel channel = connection.CreateModel();
 
-channel.QueueDeclare(queue: "product_added",
-                     durable: false,
-                     exclusive: false,
-                     autoDelete: false,
-                     arguments: null);
+string exchangeName = "EmailExchange";
+string routingKey = "email_queue";
+string queueName = "EmailQueue";
 
-Console.WriteLine(" [*] Waiting for messages.");
+channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);
+channel.QueueDeclare(queueName, true, false, false, null);
+channel.QueueBind(queueName, exchangeName, routingKey, null);
 
 var consumer = new EventingBasicConsumer(channel);
-consumer.Received += (model, ea) =>
+
+consumer.Received += (sender, args) =>
 {
-    var body = ea.Body.ToArray();
-    var message = Encoding.UTF8.GetString(body);
-    Console.WriteLine($" [x] Received {message}");
+    //Task.Delay(TimeSpan.FromSeconds(2)).Wait();
+    var body = args.Body.ToArray();
+    string message = Encoding.UTF8.GetString(body);
+
+    Console.WriteLine($"Message received: {message}");
+    EmailService emailService = new EmailService();
+    emailService.SendEmail(message);
+
+    channel.BasicAck(args.DeliveryTag, false);
 };
-channel.BasicConsume(queue: "product_added",
-                     autoAck: true,
-                     consumer: consumer);
 
-Console.WriteLine(" Press [enter] to exit.");
-Console.ReadLine();
-*/
-Console.WriteLine("Provide subscriptionid: ");
-var subscriptionId = Console.ReadLine();
+channel.BasicConsume(queueName, false, consumer);
 
-using (var bus = RabbitHutch.CreateBus("host=localhost"))
+Console.WriteLine("Waiting for messages. Press Q to quit.");
+
+// Sleep for a long time to keep the application running
+Thread.Sleep(Timeout.Infinite);
+
+// Close resources before exiting
+channel.Close();
+connection.Close();
+
+/*Console.WriteLine("Waiting for messages. Press Q to quit.");
+
+while (true)
 {
-    bus.PubSub.Subscribe<Destinacija>("test", HandleTextMessage);
-    Console.WriteLine("Listening for messages. Hit <return> to quit.");
-    Console.ReadLine();
+    // Add a delay to avoid a tight loop
+    Thread.Sleep(1000);
+
+    if (Console.KeyAvailable && Console.ReadKey(intercept: true).Key == ConsoleKey.Q)
+    {
+        break; // Break the loop if 'Q' is pressed
+    }
 }
 
-void HandleTextMessage(Destinacija entity)
-{
-    Console.WriteLine($"Received: {entity?.Id}, {entity?.Naziv}");
-}
+// Close resources before exiting
+channel.Close();
+connection.Close();*/

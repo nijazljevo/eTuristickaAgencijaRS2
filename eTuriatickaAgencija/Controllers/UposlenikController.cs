@@ -12,8 +12,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class UposlenikController : BaseCRUDController<eTuristickaAgencija.Models.Uposlenik, UposlenikSearchObject, UposlenikInsertRequest, UposlenikUpdateRequest>
     {
-        public UposlenikController(IUposlenikService uposlenikService) : base(uposlenikService)
+        private readonly IUposlenikService _uposlenikService;
+        public UposlenikController(ILogger<BaseController<Uposlenik, UposlenikSearchObject>> logger, IUposlenikService uposlenikService) : base(logger, uposlenikService)
         {
+            _uposlenikService = uposlenikService;
         }
 
         //Dodavanje bez authorizacije

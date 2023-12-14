@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace eTuristickaAgencija.Service
 {
-    public interface IService<T, TSearch> where T : class where TSearch : class
+    public interface IService<T, TSearch>  where TSearch : class
     {
         IEnumerable<T> Get(TSearch search = null);
         T GetById(int id);

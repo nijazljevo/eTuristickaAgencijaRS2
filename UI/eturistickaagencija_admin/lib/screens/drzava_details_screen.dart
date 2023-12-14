@@ -1,20 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:eturistickaagencija_admin/models/kontinent.dart';
-import 'package:eturistickaagencija_admin/providers/grad.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+
 import '../models/drzava.dart';
-import '../models/grad.dart';
-import '../models/hotel.dart';
 import '../models/search_result.dart';
 import '../providers/drzava_provider.dart';
-import '../providers/hotel_provider.dart';
 import '../providers/kontinent_provider.dart';
 import '../widgets/master_screen.dart';
 
@@ -37,7 +28,6 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _initialValue = {
       'naziv': widget.drzava?.naziv,
@@ -50,18 +40,9 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
     initForm();
   }
 
-  @override
-  void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-
-   
-  }
-
   Future initForm() async {
     kontinentResult = await _kontinentProvider.get();
     print(kontinentResult);
-
 
     setState(() {
       isLoading = false;
@@ -71,7 +52,6 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreenWidget(
-      // ignore: sort_child_properties_last
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
@@ -81,40 +61,50 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
               Padding(
                 padding: EdgeInsets.all(10),
                 child: ElevatedButton(
-                    onPressed: () async {
-                      _formKey.currentState?.saveAndValidate();
+                  onPressed: () async {
+                    if (_formKey.currentState?.saveAndValidate() ?? false) {
+                      Map<String, dynamic> request =
+                          Map<String, dynamic>.from(_formKey.currentState!.value);
 
-                      print(_formKey.currentState?.value);
-                      print(_formKey.currentState?.value['naziv']);
-
-                      var request = new Map.from(_formKey.currentState!.value);
-
-                     
-                      
                       try {
                         if (widget.drzava == null) {
-                          await _drzavaProvider
-                              .insert(request);
+                          await _drzavaProvider.insert(request);
                         } else {
-                          await _drzavaProvider.update(
-                              widget.drzava!.id!,
-                              request);
+                          await _drzavaProvider.update(widget.drzava!.id!, request);
                         }
                       } on Exception catch (e) {
                         showDialog(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                                  title: Text("Error"),
-                                  content: Text(e.toString()),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text("OK"))
-                                  ],
-                                ));
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: Text("Error"),
+                            content: Text(e.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("OK"),
+                              )
+                            ],
+                          ),
+                        );
                       }
-                    },
-                    child: Text("Sačuvaj")),
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          title: Text("Validation Error"),
+                          content: Text("Molimo vas da popunite sva obavezna polja."),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text("OK"),
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: Text("Sačuvaj"),
+                ),
               )
             ],
           )
@@ -128,58 +118,63 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
     return FormBuilder(
       key: _formKey,
       initialValue: _initialValue,
-      child: Column(children: [
-        Row(
-          children: [
-           
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Naziv"),
-                name: "naziv",
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 10,
               ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-                child: FormBuilderDropdown<String>(
-              name: 'kontinentId',
-              decoration: InputDecoration(
-                labelText: 'Kontinent',
-                suffix: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _formKey.currentState!.fields['kontinentId']?.reset();
-                  },
+              Expanded(
+                child: FormBuilderTextField(
+                  decoration: InputDecoration(
+                    labelText: "Naziv",
+                    errorText: _formKey.currentState?.fields['naziv']?.errorText,
+                  ),
+                  name: "naziv",
+                  validator: FormBuilderValidators.compose([
+                    FormBuilderValidators.required(context, errorText: "Polje je obavezno."),
+                  ]),
                 ),
-                hintText: 'Select Gender',
               ),
-              items: kontinentResult?.result
-                      .map((item) => DropdownMenuItem(
-                            alignment: AlignmentDirectional.center,
-                            value: item.id!.toString(),
-                            child: Text(item.naziv ?? ""),
-                          ))
-                      .toList() ??
-                  [],
-            )),
-            SizedBox(
-              width: 10,
-            ),
-          
-         
-          ],
-        ),
-       
-      ]),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: FormBuilderDropdown<String>(
+                  name: 'kontinentId',
+                  decoration: InputDecoration(
+                    labelText: 'Kontinent',
+                    errorText: _formKey.currentState?.fields['kontinentId']?.errorText,
+                    suffix: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _formKey.currentState!.fields['kontinentId']?.reset();
+                      },
+                    ),
+                    hintText: 'Select Kontinent',
+                  ),
+                  items: kontinentResult?.result
+                          .map((item) => DropdownMenuItem(
+                                alignment: AlignmentDirectional.center,
+                                value: item.id!.toString(),
+                                child: Text(item.naziv ?? ""),
+                              ))
+                          .toList() ??
+                      [],
+                  validator: FormBuilderValidators.compose([
+                    FormBuilderValidators.required(context, errorText: "Polje je obavezno."),
+                  ]),
+                ),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
-
-
-
-  
 }

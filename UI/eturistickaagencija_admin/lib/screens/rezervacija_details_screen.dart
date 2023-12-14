@@ -154,7 +154,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
               FormBuilderTextField(
                 name: 'cijena',
                 decoration: InputDecoration(labelText: 'Cijena'),
-                validator: FormBuilderValidators.required(context),
+                validator: FormBuilderValidators.required(context, errorText: 'Polje "Cijena" je obavezno.'),
                 keyboardType: TextInputType.number,
                 initialValue: price?.toString(),
                 onChanged: (value) {
@@ -179,10 +179,12 @@ class _ReservationScreenState extends State<ReservationScreen> {
                           ? DateFormat('dd/MM/yyyy').format(selectedDate!)
                           : '',
                     ),
+                    validator: FormBuilderValidators.required(context, errorText: 'Polje "Datum Rezervacije" je obavezno.'),
                   ),
                 ),
               ),
               DropdownButtonFormField<String>(
+              //  name: 'hotel',
                 decoration: InputDecoration(labelText: 'Hotel'),
                 items: hotelResult?.result
                         .map((item) => DropdownMenuItem(
@@ -198,14 +200,16 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     selectedHotelId = newValue;
                   });
                 },
+                validator: FormBuilderValidators.required(context, errorText: 'Polje "Hotel" je obavezno.'),
               ),
               DropdownButtonFormField<String>(
+              //  name: 'korisnik',
                 decoration: InputDecoration(labelText: 'Korisnik'),
                 items: korisnikResult?.result
                         .map((item) => DropdownMenuItem(
                               alignment: AlignmentDirectional.center,
                               value: item.id!.toString(),
-                              child: Text(item.ime! + " " + item.prezime!),
+                              child: Text(item.ime! + ' ' + item.prezime!),
                             ))
                         .toList() ??
                     [],
@@ -215,6 +219,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     selectedKorisnikId = newValue;
                   });
                 },
+                validator: FormBuilderValidators.required(context, errorText: 'Polje "Korisnik" je obavezno.'),
               ),
               Row(
                 children: [
@@ -289,40 +294,38 @@ class _ReservationScreenState extends State<ReservationScreen> {
   Future<void> updateReservation(Rezervacija reservation) async {
     final url = Uri.parse('http://localhost:7073/Rezervacija/${reservation.id}');
     try {
-  final response = await http.put(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'id': reservation.id,
-      'cijena': price,
-      'hotelId': int.tryParse(selectedHotelId ?? '0') ?? 0,
-      'otkazana': isCancelled ?? false,
-      'datumRezervacije': selectedDate?.toIso8601String(),
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id': reservation.id,
+          'cijena': price,
+          'hotelId': int.tryParse(selectedHotelId ?? '0') ?? 0,
+          'otkazana': isCancelled ?? false,
+          'datumRezervacije': selectedDate?.toIso8601String(),
+          'korisnikId': int.tryParse(selectedKorisnikId ?? '0') ?? 0,
+        }),
+      );
 
-      'korisnikId': int.tryParse(selectedKorisnikId ?? '0') ?? 0,
-    }),
-  );
+      print('HTTP PUT Request: ${url.toString()}');
+      print('Request Body: ${jsonEncode({
+        'id': reservation.id,
+        'cijena': price,
+        'hotelId': int.tryParse(selectedHotelId ?? '0') ?? 0,
+        'otkazana': isCancelled ?? false,
+        'datumRezervacije': selectedDate?.toIso8601String(),
+        'korisnikId': int.tryParse(selectedKorisnikId ?? '0') ?? 0,
+      })}');
 
-  print('HTTP PUT Request: ${url.toString()}');
-  print('Request Body: ${jsonEncode({
-    'id': reservation.id,
-    'cijena': price,
-    'hotelId': int.tryParse(selectedHotelId ?? '0') ?? 0,
-    'otkazana': isCancelled ?? false,
-    'datumRezervacije': selectedDate?.toIso8601String(),
-    'korisnikId': int.tryParse(selectedKorisnikId ?? '0') ?? 0,
-  })}');
-  
-  print('HTTP Response Status Code: ${response.statusCode}');
-  print('HTTP Response Body: ${response.body}');
-  
-  // ...
-} catch (e) {
-  // Greška u komunikaciji s API-jem
-  print('Došlo je do greške u komunikaciji s API-jem: $e');
-}
-
+      print('HTTP Response Status Code: ${response.statusCode}');
+      print('HTTP Response Body: ${response.body}');
+      
+      // ...
+    } catch (e) {
+      // Greška u komunikaciji s API-jem
+      print('Došlo je do greške u komunikaciji s API-jem: $e');
+    }
   }
 }

@@ -13,8 +13,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class GradoviController : BaseCRUDController<eTuristickaAgencija.Models.Grad, GradSearchObject, GradoviInsertRequest, GradoviUpdateRequest>
     {
-        public GradoviController(IGradService gradService) : base(gradService)
+        private readonly IGradService _gradService;
+        public GradoviController(ILogger<BaseController<Grad, GradSearchObject>> logger, IGradService gradService) : base(logger,gradService)
         {
+            _gradService = gradService;
         }
 
         //Dodavanje bez authorizacije

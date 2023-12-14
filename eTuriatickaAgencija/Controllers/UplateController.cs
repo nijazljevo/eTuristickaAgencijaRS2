@@ -1,4 +1,5 @@
-﻿using eTuristickaAgencija.Models.Request;
+﻿using eTuristickaAgencija.Models;
+using eTuristickaAgencija.Models.Request;
 using eTuristickaAgencija.Models.Search_Objects;
 using eTuristickaAgencija.Service;
 using Microsoft.AspNetCore.Authorization;
@@ -12,8 +13,10 @@ namespace eTuriatickaAgencija.Controllers
     [Authorize]
     public class UplateController : BaseCRUDController<eTuristickaAgencija.Models.Uplata, UplataSearchObject, UplataInsertRequest, UplataUpdateRequest>
     {
-        public UplateController(IUplataService uplataServis) : base(uplataServis)
+        private readonly IUplataService _uplataServis;
+        public UplateController(ILogger<BaseController<Uplata, UplataSearchObject>> logger, IUplataService uplataServis) : base(logger, uplataServis)
         {
+            _uplataServis = uplataServis;
         }
 
         //Dodavanje bez authorizacije

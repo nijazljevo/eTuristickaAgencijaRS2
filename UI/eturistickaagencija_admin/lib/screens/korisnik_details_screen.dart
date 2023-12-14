@@ -33,7 +33,6 @@ class _KorisnikDetailsScreenState extends State<KorisnikDetailsScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _initialValue = {
       'ime': widget.korisnik?.ime,
@@ -53,16 +52,11 @@ class _KorisnikDetailsScreenState extends State<KorisnikDetailsScreen> {
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-
-   
   }
 
   Future initForm() async {
     ulogaResult = await _ulogaProvider.get();
-    print(ulogaResult);
-
 
     setState(() {
       isLoading = false;
@@ -72,7 +66,6 @@ class _KorisnikDetailsScreenState extends State<KorisnikDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreenWidget(
-      // ignore: sort_child_properties_last
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
@@ -82,42 +75,53 @@ class _KorisnikDetailsScreenState extends State<KorisnikDetailsScreen> {
               Padding(
                 padding: EdgeInsets.all(10),
                 child: ElevatedButton(
-                    onPressed: () async {
-                      _formKey.currentState?.saveAndValidate();
-
-                      print(_formKey.currentState?.value);
-                      print(_formKey.currentState?.value['ime']);
-
-                      var request = new Map.from(_formKey.currentState!.value);
+                  onPressed: () async {
+                    if (_formKey.currentState?.saveAndValidate() ?? false) {
+                      Map<String, dynamic> request =
+                          Map<String, dynamic>.from(_formKey.currentState!.value);
 
                       request['slika'] = _base64Image;
 
-                      print(request['slika']);
-                      
                       try {
                         if (widget.korisnik == null) {
-                          await _korisnikProvider
-                              .insert(request);
+                          await _korisnikProvider.insert(request);
                         } else {
                           await _korisnikProvider.update(
-                              widget.korisnik!.id!,
-                              request);
+                              widget.korisnik!.id!, request);
                         }
                       } on Exception catch (e) {
                         showDialog(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                                  title: Text("Error"),
-                                  content: Text(e.toString()),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text("OK"))
-                                  ],
-                                ));
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: Text("Error"),
+                            content: Text(e.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("OK"),
+                              )
+                            ],
+                          ),
+                        );
                       }
-                    },
-                    child: Text("Sačuvaj")),
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          title: Text("Validation Error"),
+                          content: Text("Molimo vas da ispravno popunite sva obavezna polja."),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text("OK"),
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: Text("Sačuvaj"),
+                ),
               )
             ],
           )
@@ -136,123 +140,172 @@ class _KorisnikDetailsScreenState extends State<KorisnikDetailsScreen> {
           children: [
             Expanded(
               child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Ime"),
-                name: "ime",
-              ),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Prezime"),
-                name: "prezime",
-              ),
-            ),
-             SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Email"),
-                name: "email",
-              ),
-            ),
-             SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Korisnicko ime"),
-                name: "korisnikoIme",
-              ),
-            ),
-             SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Password"),
-                name: "password",
-              ),
-            ),
-             SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: FormBuilderTextField(
-                decoration: InputDecoration(labelText: "Password potvrda"),
-                name: "passwordPotvrda",
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-                child: FormBuilderDropdown<String>(
-              name: 'ulogaId',
-              decoration: InputDecoration(
-                labelText: 'Uloga',
-                suffix: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _formKey.currentState!.fields['ulogaId']?.reset();
-                  },
+                decoration: InputDecoration(
+                  labelText: "Ime",
                 ),
-                hintText: 'Select Gender',
+                name: "ime",
+               validator: validateSurname,
               ),
-              items: ulogaResult?.result
-                      .map((item) => DropdownMenuItem(
-                            alignment: AlignmentDirectional.center,
-                            value: item.id!.toString(),
-                            child: Text(item.naziv ?? ""),
-                          ))
-                      .toList() ??
-                  [],
-            )),
+            ),
             SizedBox(
               width: 10,
             ),
-          
-         
+            Expanded(
+              child: FormBuilderTextField(
+                decoration: InputDecoration(
+                  labelText: "Prezime",
+                ),
+                name: "prezime",
+               validator: validateSurname,
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: FormBuilderTextField(
+                decoration: InputDecoration(
+                  labelText: "Email",
+                ),
+                name: "email",
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context, errorText: "Polje 'Email' je obavezno."),
+                  FormBuilderValidators.email(context, errorText: "Unesite ispravan format email adrese."),
+                ]),
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: FormBuilderTextField(
+                decoration: InputDecoration(
+                  labelText: "Korisničko ime",
+                ),
+                name: "korisnikoIme",
+                validator: FormBuilderValidators.required(context, errorText: "Polje 'Korisničko ime' je obavezno."),
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: FormBuilderTextField(
+                decoration: InputDecoration(
+                  labelText: "Password",
+                ),
+                name: "password",
+                validator: FormBuilderValidators.required(context, errorText: "Polje 'Password' je obavezno."),
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: FormBuilderTextField(
+                decoration: InputDecoration(
+                  labelText: "Password potvrda",
+                ),
+                name: "passwordPotvrda",
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context, errorText: "Polje 'Password potvrda' je obavezno."),
+                  (val) {
+                    if (val != _formKey.currentState?.value['password']) {
+                      return "Password potvrda se ne podudara sa passwordom.";
+                    }
+                    return null;
+                  },
+                ]),
+              ),
+            ),
           ],
         ),
         Row(
           children: [
             Expanded(
-                child: FormBuilderField(
-              name: 'imageId',
-              builder: ((field) {
-                return InputDecorator(
-                  decoration: InputDecoration(
-                      label: Text('Odaberite sliku'),
-                      errorText: field.errorText),
-                  child: ListTile(
-                    leading: Icon(Icons.photo),
-                    title: Text("Select image"),
-                    trailing: Icon(Icons.file_upload),
-                    onTap: getImage,
+              child: FormBuilderDropdown<String>(
+                name: 'ulogaId',
+                decoration: InputDecoration(
+                  labelText: 'Uloga',
+                  suffix: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _formKey.currentState!.fields['ulogaId']?.reset();
+                    },
                   ),
-                );
-              }),
-            ))
+                   hintText: 'Odaberite ulogu',
+                ),
+               
+                items: ulogaResult?.result
+                        .map((item) => DropdownMenuItem(
+                              alignment: AlignmentDirectional.center,
+                              value: item.id!.toString(),
+                              child: Text(item.naziv ?? ""),
+                            ))
+                        .toList() ??
+                    [],
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context, errorText: "Polje 'Uloga' je obavezno."),
+                ]),
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: FormBuilderField(
+                name: 'imageId',
+                builder: ((field) {
+                  return InputDecorator(
+                    decoration: InputDecoration(
+                        label: Text('Odaberite sliku'),
+                        errorText: field.errorText),
+                    child: ListTile(
+                      leading: Icon(Icons.photo),
+                      title: Text("Odaberite sliku"),
+                      trailing: Icon(Icons.file_upload),
+                      onTap: getImage,
+                    ),
+                  );
+                }),
+              ),
+            )
           ],
         )
       ]),
     );
   }
-  
+
+
   File? _image;
   String? _base64Image;
 
-  Future getImage()  async {
+  Future getImage() async {
     var result = await FilePicker.platform.pickFiles(type: FileType.image);
 
-    if(result != null && result.files.single.path != null) {
+    if (result != null && result.files.single.path != null) {
       _image = File(result.files.single.path!);
       _base64Image = base64Encode(_image!.readAsBytesSync());
     }
-
   }
+}
+String? validateSurname(String? value) {
+  if (value == null || value.isEmpty) {
+    return "Polje je obavezno.";
+  }
+
+  if (!isValidSurname(value)) {
+    return "Ime i prezime može sadržavati samo slova i može imati najviše 25 karaktera.";
+  }
+
+  return null;  // Vraća null ako je sve u redu
+}
+
+bool isValidSurname(String value) {
+  // Provjerava je li prezime sastavljeno samo od slova i ima najviše 25 karaktera
+  return RegExp(r'^[a-zA-Z]+$').hasMatch(value) && value.length <= 25;
 }

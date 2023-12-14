@@ -2,6 +2,7 @@
 using eTuristickaAgencija.Models.Request;
 using eTuristickaAgencija.Models.Search_Objects;
 using eTuristickaAgencija.Service;
+using eTuristickaAgencija.Service.RabbitMQ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,8 +13,13 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class RezervacijaController : BaseCRUDController<eTuristickaAgencija.Models.Rezervacija, RezervacijaSearchObject, RezervacijaInsertRequest, RezervacijaUpdateRequest>
     {
-        public RezervacijaController(IRezervacijaService rezervacijaService) : base(rezervacijaService)
+        private readonly IRezervacijaService _rezervacijaService;
+        private readonly IRabbitMQProducer _rabbitMQProducer;
+        public RezervacijaController(ILogger<BaseController<Rezervacija, RezervacijaSearchObject>> logger,
+            IRezervacijaService rezervacijaService, IRabbitMQProducer rabitMQProducer) : base(logger,rezervacijaService)
         {
+            _rezervacijaService = rezervacijaService;
+            _rabbitMQProducer = rabitMQProducer;
         }
 
         //Dodavanje bez authorizacije
@@ -27,6 +33,21 @@ namespace eTuriatickaAgencija.Controllers
         {
             return base.Update(id,rezervacijaUpdateRequest);
         }
+       public class EmailModel
+        {
+            public string Sender { get; set; }
+            public string Recipient { get; set; }
+            public string Subject { get; set; }
+            public string Content { get; set; }
+        }
+       [HttpPost("SendConfirmationEmail")]
+       public IActionResult SendConfirmationEmail([FromBody] EmailModel emailModel)
+      {
+            _rabbitMQProducer.SendMessage(emailModel);
+            Thread.Sleep(TimeSpan.FromSeconds(15));
+            return Ok();
+      }
+
 
     }
 }

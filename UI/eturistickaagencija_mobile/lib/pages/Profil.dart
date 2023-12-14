@@ -19,27 +19,14 @@ class _ProfilState extends State<Profil> {
   TextEditingController prezimeController = TextEditingController();
   TextEditingController korisnickoImeController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController potvrdaPasswordController = TextEditingController();
-  List<Uloga> uloga = [];
-  Uloga? selectedUloga;
+ 
 
   @override
   void initState() {
     super.initState();
-    loadUloge();
   }
 
-  Future<void> loadUloge() async {
-    var response = await http.get(Uri.parse('http://10.0.2.2:7073/Uloge'));
-    if (response.statusCode == 200) {
-      var ulogeJson = jsonDecode(response.body);
-      setState(() {
-        uloga = ulogeJson.map<Uloga>((uloga) => Uloga.fromJson(uloga)).toList();
-
-      });
-    } 
-  }
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -104,31 +91,7 @@ class _ProfilState extends State<Profil> {
       ),
     );
 
-    final txtPassword = TextFormField(
-      validator: (value) {
-        return value == null || value.isEmpty ? "Obavezno polje" : null;
-      },
-      controller: passwordController,
-      obscureText: false,
-      decoration: InputDecoration(
-        contentPadding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-        hintText: "Lozinka",
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
-      ),
-    );
-
-    final txtPotvrdaPassword = TextFormField(
-      validator: (value) {
-        return value == null || value.isEmpty ? "Obavezno polje" : null;
-      },
-      controller: potvrdaPasswordController,
-      obscureText: false,
-      decoration: InputDecoration(
-        contentPadding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-        hintText: "Potvrda lozinke",
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
-      ),
-    );
+ 
 
     // ignore: non_constant_identifier_names
     Widget ProfilWidget(korisnik) {
@@ -156,36 +119,6 @@ class _ProfilState extends State<Profil> {
                     const SizedBox(height: 16),
                     txtEmail,
                     const SizedBox(height: 16),
-                    txtPassword,
-                    const SizedBox(height: 16),
-                    txtPotvrdaPassword,
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<Uloga>(
-                      value: selectedUloga,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedUloga = value;
-                        });
-                      },
-                      items: uloga.map((uloga) {
-                        return DropdownMenuItem<Uloga>(
-                          value: uloga,
-                          child: Text(uloga.naziv!),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.fromLTRB(
-                          20.0,
-                          15.0,
-                          20.0,
-                          15.0,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(32.0),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     Container(
                       height: 50,
                       width: 250,
@@ -202,9 +135,6 @@ class _ProfilState extends State<Profil> {
                               prezime: prezimeController.text,
                               korisnikoIme: korisnickoImeController.text,
                               email: emailController.text,
-                              password: passwordController.text,
-                              passwordPotvrda: potvrdaPasswordController.text,
-                              ulogaId: selectedUloga!.id,
                             );
 
                             final response = await http.put(

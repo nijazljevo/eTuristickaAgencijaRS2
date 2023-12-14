@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace eTuriatickaAgencija.Controllers
 {
     [Route("[controller]")]
-    [Authorize]
     public class BaseCRUDDestinacijaController<T, TSearch, TInsert, TUpdate> : BaseDestinacijaController<T, TSearch> where T : class where TSearch : class
     {
         protected new readonly ICRUDDestinacijeService<T, TSearch, TInsert, TUpdate> _service;

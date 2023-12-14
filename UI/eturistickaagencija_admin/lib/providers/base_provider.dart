@@ -43,23 +43,24 @@ abstract class BaseProvider<T> with ChangeNotifier{
     throw new Exception("Unknown error");
    }
   }
-  Future<T>insert(dynamic request)async{
-     var url="$_baseUrl$_endpoint";
-     var uri=Uri.parse(url);
-    var headers=createHeaders();
-    
-    var jsonRequest=jsonEncode(request);
-    var response=await http.post(uri,headers: headers,body: jsonRequest);
+ Future<T> insert(dynamic request) async {
+  var url = "$_baseUrl$_endpoint";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
 
-     if(isValidResponse(response)){
-     var data=jsonDecode(response.body);
-     return fromJson(data);
-   }
-   else{
-        // ignore: unnecessary_new
-        throw new Exception("Unknown error");
-   }
+  // Dodajte provjeru je li request null prije slanja
+  var jsonRequest = request != null ? jsonEncode(request) : null;
+
+  var response = await http.post(uri, headers: headers, body: jsonRequest);
+
+  if (isValidResponse(response)) {
+    var data = jsonDecode(response.body);
+    return fromJson(data);
+  } else {
+    // ignore: unnecessary_new
+    throw Exception("Unknown error");
   }
+}
    Future<T>update(int id,[dynamic request])async{
      var url="$_baseUrl$_endpoint/$id";
      var uri=Uri.parse(url);

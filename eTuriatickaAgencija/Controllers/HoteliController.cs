@@ -13,15 +13,17 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class HoteliController : BaseCRUDController<eTuristickaAgencija.Models.Hotel, HotelSearchObject, HotelInsertRequest, HotelUpdateRequest>
     {
-        public HoteliController(IHotelService hotelService) : base(hotelService)
+        private readonly IHotelService _hotelService;
+        public HoteliController(ILogger<BaseController<Hotel, HotelSearchObject>> logger, IHotelService hotelService) : base(logger, hotelService)
         {
+            _hotelService = hotelService;
         }
-
         //Dodavanje bez authorizacije
         [AllowAnonymous]
         public override eTuristickaAgencija.Models.Hotel Insert([FromBody] HotelInsertRequest hotelInsertRequest)
         {
             return base.Insert(hotelInsertRequest);
         }
+
     }
 }

@@ -36,6 +36,10 @@ namespace eTuristickaAgencija.Service.DestinacijeStateMachine
         {
             throw new UserException("Not allowed");
         }
+        //      public virtual Task<Models.Destinacija> Activate(int id)
+        //    {
+        //      throw new UserException("Not allowed");
+        //  }
         public virtual Task<Models.Destinacija> Hide(int id)
         {
             throw new UserException("Not allowed");

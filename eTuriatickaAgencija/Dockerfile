@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["eTuriatickaAgencija/eTuriatickaAgencija.csproj", "eTuriatickaAgencija/"]
+COPY ["RabbitMQ.Service/RabbitMQ.Service.csproj", "RabbitMQ.Service/"]
 RUN dotnet restore "eTuriatickaAgencija/eTuriatickaAgencija.csproj"
 COPY . .
 WORKDIR "/src/eTuriatickaAgencija"

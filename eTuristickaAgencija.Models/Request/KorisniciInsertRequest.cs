@@ -10,7 +10,7 @@ namespace eTuristickaAgencija.Models.Request
     {
         public int Id { get; set; }
         
-        public byte?[] Slika { get; set; }
+        public byte[] Slika { get; set; }
         [Required]
         public string Ime { get; set; }
         [Required]

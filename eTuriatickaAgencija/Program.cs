@@ -9,6 +9,8 @@ using eTuriatickaAgencija;
 using eTuriatickaAgencija.Filters;
 using Microsoft.OpenApi.Models;
 using eTuristickaAgencija.Service.DestinacijeStateMachine;
+using RabbitMQ.Client;
+using eTuristickaAgencija.Service.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,7 @@ builder.Services.AddTransient<BaseState>();
 builder.Services.AddTransient<InitialDestinationState>();
 builder.Services.AddTransient<DraftDestinationState>();
 builder.Services.AddTransient<ActiveDestinationState>();
+builder.Services.AddTransient<IRabbitMQProducer, RabbitMQProducer>();
 
 builder.Services.AddAutoMapper(typeof(IKorisniciService));
 

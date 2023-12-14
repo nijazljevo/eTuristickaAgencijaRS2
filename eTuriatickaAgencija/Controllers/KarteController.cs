@@ -12,8 +12,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class KarteController : BaseCRUDController<eTuristickaAgencija.Models.Karta, KartaSearchObject, KartaInsertRequest, KartaUpdateRequest>
     {
-        public KarteController(IKartaService kartaService) : base(kartaService)
+        private readonly IKartaService _kartaService;
+        public KarteController(ILogger<BaseController<Karta, KartaSearchObject>> logger, IKartaService kartaService) : base(logger, kartaService)
         {
+            _kartaService = kartaService;
         }
 
         //Dodavanje bez authorizacije

@@ -12,8 +12,10 @@ namespace eTuriatickaAgencija.Controllers
     //[Authorize]
     public class OcjeneController : BaseCRUDController<eTuristickaAgencija.Models.Ocjena, OcjenaSearchObject, OcjenaInsertRequest, OcjenaUpdateRequest>
     {
-        public OcjeneController(IOcjenaService ocjenaService) : base(ocjenaService)
+        private readonly IOcjenaService _ocjenaService;
+        public OcjeneController(ILogger<BaseController<Ocjena, OcjenaSearchObject>> logger, IOcjenaService ocjenaService) : base(logger, ocjenaService)
         {
+            _ocjenaService = ocjenaService;
         }
 
         //Dodavanje bez authorizacije

@@ -62,7 +62,7 @@ namespace eTuristickaAgencija.Service.Database
 
             modelBuilder.Entity<Ocjena>().HasData(
                   new Ocjena() { Id = 1, Komentar = "Odlicno", DestinacijaId = 1,OcjenaUsluge=5,KorisnikId=2 });
-
+            
             modelBuilder.Entity<Rezervacija>().HasData(
                      new Rezervacija() { Id = 1, KorisnikId = 2,Otkazana=false, DatumRezervacije = new DateTime(2020, 09, 01),HotelId=1,Cijena=300 });
 
