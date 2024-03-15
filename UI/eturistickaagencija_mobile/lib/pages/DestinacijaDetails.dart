@@ -88,7 +88,6 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // Perform the rating submission here
                   submitRating();
                 },
                 child: const Text('Ocijeni'),
@@ -96,7 +95,6 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to reservation page
                   navigateToReservation();
                 },
                 child: const Text('Rezervisi'),

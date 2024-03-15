@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../model/rezervacija.dart';
 import '../services/APIService.dart';
-import 'Home.dart'; // Dodano za navigaciju na početni ekran
+import 'Home.dart'; 
 
 class OnlinePaymentScreen extends StatefulWidget {
   final Rezervacije reservation;
@@ -77,10 +77,9 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
         savePaymentData();
         paymentIntent = null;
 
-        // Sačekajte 4-5 sekundi pre nego što pređete na početni ekran
         await Future.delayed(const Duration(seconds: 4));
 
-        // Prebacite korisnika na početni ekran
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Home()),
@@ -103,7 +102,6 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
 
   Future<void> savePaymentData() async {
     try {
-      // Kreiranje podataka o uplati
       Map<String, dynamic> paymentData = {
         'korisnikId': widget.reservation.korisnikId,
         'iznos': widget.reservation.cijena,
@@ -115,13 +113,10 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
       final jsonString = jsonEncode(jsonData);
       print('JSON data for payment: $jsonString');
 
-      // Poziv API servisa za dodavanje podataka o uplati
       await APIService.post("Uplate", jsonData);
 
-      // Ovdje možete dodati dodatnu logiku nakon što je uplata uspješno dodana
 
     } catch (error) {
-      // Greška prilikom komunikacije s API-jem
       print('Greška prilikom komunikacije s API-jem: $error');
     }
   }

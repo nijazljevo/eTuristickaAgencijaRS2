@@ -39,13 +39,11 @@ class _HotelListScreenState extends State<HotelListScreen> {
  Future<void> generatePDFReport() async {
     final pdf = pw.Document();
 
-    // Uzmi trenutni datum
     final currentDate = DateTime.now();
     final formattedDate = "${currentDate.day}.${currentDate.month}.${currentDate.year}.";
 
-    // Uzmi podatke o hotelima iz rezultata pretrage
     final hotels = result?.result ?? [];
-    final numberOfHotels = hotels.length; // Broj hotela
+    final numberOfHotels = hotels.length; 
 
     pdf.addPage(
       pw.Page(
@@ -65,7 +63,6 @@ class _HotelListScreenState extends State<HotelListScreen> {
 
                 
 
-                // Tabela sa podacima o hotelima
                 pw.Table(
                   columnWidths: {
                     0: pw.FixedColumnWidth(200),
@@ -177,7 +174,6 @@ Future<void> openFile(String filePath) async {
               child: const Text("Dodaj")),
               ElevatedButton(
   onPressed: () async {
-    // Generiši PDF izvještaj
     await generatePDFReport();
   },
   child: const Text("Generiši izvještaj"),

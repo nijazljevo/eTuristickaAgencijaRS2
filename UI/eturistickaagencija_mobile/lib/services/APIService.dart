@@ -226,7 +226,7 @@ static Future<List<Hotel>?> getHoteli() async {
   return null;
 }
 static Future<List<Ocjena>?> getOcjene() async {
-  final responseData = await get('Ocjene', null); // Use the API service method
+  final responseData = await get('Ocjene', null); 
   if (responseData != null) {
     List<Ocjena> ocjene = responseData.map((data) => Ocjena.fromJson(data)).toList();
     return ocjene;
@@ -253,7 +253,7 @@ static Future<List<Rezervacije>?> getReservationsForUserAndDate(int userId, Date
 
 
 static Future<Destinacija?> getDestinacija(int? destinacijaId) async {
-  final responseData = await GetById('Destinacije', destinacijaId!); // Use the API service method
+  final responseData = await GetById('Destinacije', destinacijaId!); 
   if (responseData != null) {
     return Destinacija.fromJson(responseData);
   }

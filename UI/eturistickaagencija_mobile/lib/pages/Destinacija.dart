@@ -34,7 +34,6 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
           destinacija = fetchedDestinacije;
         });
       } else {
-        // Prikazati grešku ako fetchedData nije validan
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -56,7 +55,6 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
       }
     } catch (e) {
       print('Greška prilikom dohvata podataka destinacija: $e');
-      // Prikazati grešku u slučaju iznimke
       showDialog(
         context: context,
         builder: (BuildContext context) {

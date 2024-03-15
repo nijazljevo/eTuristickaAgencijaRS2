@@ -31,15 +31,12 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
 Future<void> generatePDFReport() async {
   final pdf = pw.Document();
 
-  // Uzmi trenutni datum
   final currentDate = DateTime.now();
   final formattedDate = "${currentDate.day}.${currentDate.month}.${currentDate.year}.";
 
-  // Uzmi podatke o rezervacijama iz rezultata pretrage
   final rezervacije = result?.result ?? [];
-  final numberOfRezervacije = rezervacije.length; // Broj rezervacija
+  final numberOfRezervacije = rezervacije.length; 
 
-  // Izračunaj ukupnu cijenu
   double ukupnaCijena = 0;
   for (final rezervacija in rezervacije) {
     ukupnaCijena += rezervacija.cijena ?? 0;
@@ -61,11 +58,10 @@ Future<void> generatePDFReport() async {
               pw.Text("Broj rezervacija: $numberOfRezervacije", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 20),
 
-              // Tabela sa podacima
               pw.Table(
                 columnWidths: {
-                  0: pw.FixedColumnWidth(150), // Širina prve kolone
-                  1: pw.FixedColumnWidth(150), // Širina druge kolone
+                  0: pw.FixedColumnWidth(150), 
+                  1: pw.FixedColumnWidth(150), 
                 },
                 border: pw.TableBorder.all(),
                 children: [
@@ -85,7 +81,6 @@ Future<void> generatePDFReport() async {
                 ],
               ),
 
-              // Ukupna cijena
               pw.SizedBox(height: 20),
               pw.Text("Ukupno: $ukupnaCijena", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
             ],
@@ -95,15 +90,12 @@ Future<void> generatePDFReport() async {
     ),
   );
 
-  // Dohvati privremenu putanju za spremanje PDF datoteke
   final directory = await path_provider.getTemporaryDirectory();
   final filePath = path.join(directory.path, 'izvjestaj.pdf');
 
-  // Spremi PDF na uređaj
   final file = File(filePath);
   await file.writeAsBytes(await pdf.save());
 
-  // Otvori PDF u pregledniku
   await openFile(file.path);
 }
 
@@ -169,7 +161,6 @@ Future<void> generatePDFReport() async {
           ),
            ElevatedButton(
             onPressed: () async {
-              // Generiši PDF izvještaj
               await generatePDFReport();
             },
             child: const Text("Generiši izvještaj"),

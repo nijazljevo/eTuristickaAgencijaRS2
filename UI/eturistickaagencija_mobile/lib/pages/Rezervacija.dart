@@ -57,7 +57,6 @@ class _ReservationPageState extends State<ReservationPage> {
 
 Future<void> submitReservation() async {
   if (APIService.korisnikId != null && selectedDate != null) {
-    // Check if the user already has a reservation for the selected date
     List<Rezervacije>? reservations = await APIService.getReservationsForUserAndDate(
       APIService.korisnikId!,
       selectedDate!,
@@ -73,7 +72,6 @@ Future<void> submitReservation() async {
       }
 
       if (alreadyReserved) {
-        // If reservation exists, show a message and return
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: SizedBox(
@@ -117,17 +115,6 @@ Future<void> submitReservation() async {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
   @override

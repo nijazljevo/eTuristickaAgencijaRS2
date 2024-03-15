@@ -80,7 +80,6 @@ class _ReservationScreenState extends State<ReservationScreen> {
                       Map<String, dynamic> request =
                           Map<String, dynamic>.from(_formKey.currentState!.value);
 
-                      // Pretvori datum u ISO8601 format
                       request['datumRezervacije'] = (request['datumRezervacije'] as DateTime).toIso8601String();
 
                       try {
@@ -275,7 +274,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   inputType: InputType.date,
   initialDate: selectedDate,
   firstDate: DateTime.now(),
-  lastDate: DateTime.now().add(Duration(days: 365)), // Možete prilagoditi ovo prema potrebama
+  lastDate: DateTime.now().add(Duration(days: 365)), 
 ),
 
            FormBuilderCheckbox(

@@ -252,7 +252,7 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
           children: [
             Expanded(
               child: FormBuilderField(
-                name: 'slika',  // koristi 'slika' umjesto 'imageId'
+                name: 'slika',  
                 builder: ((field) {
                   return InputDecorator(
                     decoration: InputDecoration(

@@ -156,7 +156,6 @@ void _showSuccessDialog(BuildContext context, String message) {
   if (value == null || value.isEmpty) {
     return "Polje je obavezno.";
   }
-  // Regularni izraz za provjeru formata telefonskog broja
   RegExp regExp = RegExp(r'^[0-9\-\+\s\(\)]{9,15}$');
   if (!regExp.hasMatch(value)) {
     return "Neispravan format telefonskog broja.";
