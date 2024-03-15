@@ -21,3 +21,6 @@
   ```
   Broj kartice: 4242 4242 4242 4242
   CVC: 123
+  Country: United States
+  ZIP Code: 4222
+  ```
