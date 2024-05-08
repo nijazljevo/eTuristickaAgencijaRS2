@@ -176,16 +176,7 @@ Future<void> submitReservation() async {
                       : 'Odaberi datum',
                 ),
               ),
-              const SizedBox(height: 16),
-              CheckboxListTile(
-                title: const Text('Otkazana rezervacija'),
-                value: isCancelled,
-                onChanged: (bool? newValue) {
-                  setState(() {
-                    isCancelled = newValue ?? false;
-                  });
-                },
-              ),
+             
               const SizedBox(height: 16),
               Text('Cijena: $price'),
               const SizedBox(height: 16),

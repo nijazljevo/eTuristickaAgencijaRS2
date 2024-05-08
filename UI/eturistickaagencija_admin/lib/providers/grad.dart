@@ -19,5 +19,12 @@ class GradProvider extends BaseProvider<Grad>{
       return false;
     }
   }
+  Future<void> deleteGrad(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja grada: $e");
+  }
+}
 
 }

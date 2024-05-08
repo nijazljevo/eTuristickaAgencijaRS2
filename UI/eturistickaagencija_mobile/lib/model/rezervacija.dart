@@ -11,7 +11,7 @@ class Rezervacije {
     required this.hotelId,
     required this.korisnikId,
     required this.datumRezervacije,
-    required this.otkazana,
+     required this.otkazana,
     required this.cijena,
   });
  factory Rezervacije.fromJson(Map<String, dynamic> json) {

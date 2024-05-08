@@ -13,7 +13,8 @@ namespace eTuristickaAgencija.Models.Request
 
         [Range(0, 10000)]
         public decimal Cijena { get; set; }
-     
+      public decimal Popust { get; set; }
+       public decimal CijenaPopust { get; set; }
        
         public int HotelId { get; set; }
         

@@ -18,4 +18,11 @@ class KorisnikProvider extends BaseProvider<Korisnik>{
       return false;
     }
   }
+  Future<void> deleteKorisnik(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja korisnika: $e");
+  }
+}
 }

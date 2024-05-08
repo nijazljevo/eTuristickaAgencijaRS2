@@ -30,13 +30,20 @@ class _ProfilState extends State<Profil> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Moj profil'),
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        'Moj profil',
+        style: TextStyle(
+          color: Colors.black, // Promjena boje teksta u crnu
+          fontWeight: FontWeight.bold, // Dodavanje podebljanja tekstu
+        ),
       ),
-      body: bodyWidget(),
-    );
-  }
+    ),
+    body: bodyWidget(),
+  );
+}
+
 
   Widget bodyWidget() {
     

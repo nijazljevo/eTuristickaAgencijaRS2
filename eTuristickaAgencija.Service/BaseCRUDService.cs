@@ -49,5 +49,25 @@ namespace eTuristickaAgencija.Service
             Context.SaveChanges();
             return Mapper.Map<T>(entity);
         }
+       public virtual T Delete(int id)
+{
+    var set = Context.Set<TDb>();
+    var entity = set.Find(id);
+    if (entity != null)
+    {
+        var tmp = entity;
+        Context.Remove(entity);
+        int result = Context.SaveChanges(); // Dodajte ovaj red za proveru rezultata brisanja
+        Console.WriteLine($"Delete result: {result}"); // Dodajte ovaj red za proveru rezultata brisanja
+        return Mapper.Map<T>(tmp);
+    }
+    else
+    {
+        return null;
+    }
+}
+
+        
+     
     }
 }

@@ -19,7 +19,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Database.Uposlenik> AddFilter(IQueryable<Database.Uposlenik> query, UposlenikSearchObject search = null)
+        public override IQueryable<Database.Uposlenik> AddFilter(IQueryable<Database.Uposlenik> query, UposlenikSearchObject search=null)
         {
             var filteredQuery = base.AddFilter(query, search);
 

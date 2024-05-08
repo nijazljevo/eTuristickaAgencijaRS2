@@ -18,7 +18,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Uplate> AddFilter(IQueryable<Uplate> query, UplataSearchObject search = null)
+        public override IQueryable<Uplate> AddFilter(IQueryable<Uplate> query, UplataSearchObject search=null)
         {
             var filteredQuery = base.AddFilter(query, search);
 

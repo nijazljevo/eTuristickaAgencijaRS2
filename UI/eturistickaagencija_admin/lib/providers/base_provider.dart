@@ -78,22 +78,33 @@ abstract class BaseProvider<T> with ChangeNotifier{
         throw new Exception("Unknown error");
    }
   }
+Future<void> delete(int id) async {
+  var url = "$_baseUrl$_endpoint/$id";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  var response = await http.delete(uri, headers: headers);
+
+  if (isValidResponse(response)) {
+  } else {
+    // ignore: unnecessary_new
+    throw Exception("Unknown error");
+  }
+}
 
   T fromJson(data){
     throw Exception("Method not implemented");
   }
-  bool isValidResponse(Response response){
-    if(response.statusCode<299){
-      return true;
-    }else if(response.statusCode==401){
-      // ignore: unnecessary_new
-      throw new Exception("Unauthorized");
-
-    }else{
-      // ignore: unnecessary_new
-      throw new Exception("Something bad happened please try again");
+bool isValidResponse(Response response){
+    if(response.statusCode < 299){
+        return true;
+    } else if(response.statusCode == 401){
+        throw Exception("Unauthorized");
+    } else {
+        throw Exception("Something bad happened please try again");
     }
-  }
+}
+
   Map<String ,String>createHeaders(){
     String username=Authorization.username ?? "";
     String password=Authorization.password ?? "";

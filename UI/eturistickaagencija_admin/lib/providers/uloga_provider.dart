@@ -11,4 +11,5 @@ class UlogaProvider extends BaseProvider<Uloga>{
     // TODO: implement fromJson
     return Uloga.fromJson(data);
   }
+  
 }

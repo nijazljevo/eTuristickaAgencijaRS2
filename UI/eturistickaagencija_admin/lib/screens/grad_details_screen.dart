@@ -50,6 +50,7 @@ class _GradDetailsScreenState extends State<GradDetailsScreen> {
 
   Future initForm() async {
     drzavaResult = await _drzavaProvider.get();
+    // ignore: avoid_print
     print(drzavaResult);
 
     setState(() {
@@ -60,7 +61,7 @@ void _showSuccessDialog(BuildContext context, String message) {
   showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
-      title: Text("Uspjeh"),
+      title: const Text("Uspjeh"),
       content: Text(message),
       actions: [
         TextButton(
@@ -68,7 +69,7 @@ void _showSuccessDialog(BuildContext context, String message) {
             Navigator.pop(context);
             _formKey.currentState?.reset(); 
           },
-          child: Text("OK"),
+          child: const Text("OK"),
         )
       ],
     ),
@@ -78,20 +79,64 @@ void _showSuccessDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Greška"),
+        title: const Text("Greška"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
     );
   }
+  void _showDeleteConfirmationDialog(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Potvrdite brisanje"),
+      content: const Text("Jeste li sigurni da želite obrisati ovaj kontinent?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            try {
+              await _gradProvider.deleteGrad(widget.grad!.id!);
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pop();
+              // ignore: use_build_context_synchronously
+              _showSuccessDialog(context, 'Zapis uspješno obrisan.');
+            } on Exception catch (e) {
+              // ignore: avoid_print
+              print("Delete error: $e"); // Dodajte ispis u konzolu
+              // ignore: use_build_context_synchronously
+              _showErrorDialog(context, 'Greška prilikom brisanja: $e');
+            }
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
-    return MasterScreenWidget(
+     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.grad?.naziv ?? 'Grad ',style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black) ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back), 
+          onPressed: () {
+            Navigator.pop(context); 
+          },
+        ),
+      ),
+    body: MasterScreenWidget(
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
@@ -99,7 +144,7 @@ void _showSuccessDialog(BuildContext context, String message) {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState?.saveAndValidate() ?? false) {
@@ -111,27 +156,31 @@ void _showSuccessDialog(BuildContext context, String message) {
                         if (widget.grad == null || widget.grad!.naziv != naziv) {
                           final isDuplicate = await _gradProvider.checkDuplicate(naziv);
                           if (isDuplicate) {
+                            // ignore: use_build_context_synchronously
                             _showErrorDialog(context, 'Zapis već postoji.');
                             return; 
                           }
                         }
                         if (widget.grad == null) {
                           await _gradProvider.insert(request);
+                          // ignore: use_build_context_synchronously
                           _showSuccessDialog(context, 'Zapis uspješno dodan.');
                         } else {
                           await _gradProvider.update(widget.grad!.id!, request);
+                          // ignore: use_build_context_synchronously
                           _showSuccessDialog(context, 'Zapis uspješno ažuriran.');
                         }
                       } on Exception catch (e) {
                         showDialog(
+                          // ignore: use_build_context_synchronously
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                            title: Text("Error"),
+                            title: const Text("Error"),
                             content: Text(e.toString()),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text("OK"),
+                                child: const Text("OK"),
                               )
                             ],
                           ),
@@ -141,26 +190,56 @@ void _showSuccessDialog(BuildContext context, String message) {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) => AlertDialog(
-                          title: Text("Validation Error"),
-                          content: Text("Molimo vas da popunite sva obavezna polja."),
+                          title: const Text("Validation Error"),
+                          content: const Text("Molimo vas da popunite sva obavezna polja."),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: Text("OK"),
+                              child: const Text("OK"),
                             )
                           ],
                         ),
                       );
                     }
                   },
-                  child: Text("Sačuvaj"),
+                  child: const Padding(
+    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0), 
+    child: Text(
+      "Sačuvaj",
+      style: TextStyle(fontSize: 16.0), 
+    ),
+  ),
+
                 ),
-              )
-            ],
-          )
-        ],
+              ),
+             Padding(
+                  padding: const EdgeInsets.all(10),
+                child: ElevatedButton(
+  onPressed: () {
+    _showDeleteConfirmationDialog(context);
+  },
+  child: const Padding(
+    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.delete, color: Colors.red),
+        SizedBox(width: 5),
+        Text(
+          "Obriši",
+          style: TextStyle(fontSize: 16.0, color: Colors.red),
+        ),
+      ],
+    ),
+  ),
+),
+
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      title: this.widget.grad?.naziv ?? "Grad details",
     );
   }
 
@@ -169,18 +248,25 @@ void _showSuccessDialog(BuildContext context, String message) {
       key: _formKey,
       initialValue: _initialValue,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 10,
-              ),
-              Expanded(
-                child: FormBuilderTextField(
-                  decoration: InputDecoration(
-                    labelText: "Naziv",
-                    errorText: _formKey.currentState?.fields['naziv']?.errorText,
-                  ),
+          const SizedBox(height: 10,),
+         Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
+              child: FormBuilderTextField(
+               decoration: InputDecoration(
+                
+  labelText: "Naziv",
+  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+  errorText: _formKey.currentState?.fields['naziv']?.errorText,
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
+  hintText: "Unesite naziv",
+),
                   name: "naziv",
                   validator: (value) {
   if (value == null || value.isEmpty) {
@@ -191,16 +277,23 @@ void _showSuccessDialog(BuildContext context, String message) {
 
                 ),
               ),
-            ],
+            
           ),
-          Row(
-            children: [
-              Expanded(
+          const SizedBox(height: 10,),
+          Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
                 child: FormBuilderDropdown<String>(
                   name: 'drzavaId',
                   decoration: InputDecoration(
                     labelText: 'Država',
+                    labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                     errorText: _formKey.currentState?.fields['drzavaId']?.errorText,
+                    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
                     suffix: IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () {
@@ -226,10 +319,8 @@ void _showSuccessDialog(BuildContext context, String message) {
 
                 ),
               ),
-              SizedBox(
-                width: 10,
-              ),
-            ],
+              
+            
           ),
         ],
       ),

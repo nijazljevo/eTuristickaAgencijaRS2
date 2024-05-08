@@ -29,15 +29,30 @@ class _DrzavaListScreenState extends State<DrzavaListScreen> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     _drzavaProvider = context.read<DrzavaProvider>();
+    _loadData();
+  }
+   Future<void> _loadData() async {
+    var data = await _drzavaProvider.get(filter: {'naziv': _nazivController.text});
+    setState(() {
+      result = data;
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MasterScreenWidget(
-      title_widget: const Text("Drzava list"),
-      // ignore: avoid_unnecessary_containers
-      child: Container(
-        child: Column(children: [_buildSearch(), _buildDataListView()]),
+   Widget build(BuildContext context) {
+    // ignore: avoid_unnecessary_containers
+    return Container(
+      child: MasterScreenWidget(
+        title_widget: Container(
+          padding: const EdgeInsets.all(12),
+          child: const Text("Drzave", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+        ),
+        child: Column(
+          children: [
+            _buildSearch(),
+            _buildDataListView(),
+          ],
+        ),
       ),
     );
   }
@@ -49,7 +64,15 @@ class _DrzavaListScreenState extends State<DrzavaListScreen> {
         children: [
           Expanded(
             child: TextField(
-              decoration: const InputDecoration(labelText: "Naziv"),
+              decoration: InputDecoration(
+                labelText: "Naziv",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+                contentPadding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+              ),
               controller: _nazivController,
             ),
           ),
@@ -57,78 +80,90 @@ class _DrzavaListScreenState extends State<DrzavaListScreen> {
             width: 8,
           ),
          
-          ElevatedButton(
-              onPressed: () async {
-                // ignore: avoid_print
-                print("login proceed");
-
-                var data = await _drzavaProvider.get(filter: {
-                  'naziv': _nazivController.text,
-                });
-
-                setState(() {
-                  result = data;
-                });
-
-              },
-              child: const Text("Pretraga")),
+          ElevatedButton.icon(
+            onPressed: () async {
+              await _loadData();
+            },
+            icon: const Icon(Icons.search),
+            label: const Text("Pretraga"),
+          ),
           const SizedBox(
             width: 8,
           ),
-          ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>  DrzavaDetailsScreen(
-                     drzava: null,
-                    ),
-                  ),
-                );
-              },
-              child: const Text("Dodaj"))
+         ElevatedButton.icon(
+            onPressed: () async {
+              var newDrzava = await Navigator.of(context).push<Drzava?>(
+                MaterialPageRoute(
+                  builder: (context) => DrzavaDetailsScreen(drzava: null),
+                ),
+              );
+              if (newDrzava != null) {
+                setState(() {
+                  result!.result.add(newDrzava);
+                });
+              }
+              _loadData();
+            },
+            icon: const Icon(Icons.add),
+            label: const Text("Dodaj"),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDataListView() {
+ Widget _buildDataListView() {
     return Expanded(
-        child: SingleChildScrollView(
-      child: DataTable(
-          columns: const [
-          
-           
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  'Naziv',
-                  style: TextStyle(fontStyle: FontStyle.italic),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 400,right:400), 
+          child: DataTable(
+            headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+            columns: const [
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    'Naziv',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
-            
-          ],
-          rows: result?.result
-                  .map((Drzava e) => DataRow(
-                          onSelectChanged: (selected) => {
-                                if (selected == true)
-                                  {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DrzavaDetailsScreen(
-                                          drzava: e,
-                                        ),
-                                      ),
-                                    )
-                                  }
-                              },
-                          cells: [
-                            DataCell(Text(e.naziv ?? "")),
-                          
-                          ]))
+              
+            ],
+            rows: result?.result
+                  .map(
+                    (Drzava e) => DataRow(
+                      cells: [
+                        DataCell(
+                          Text(
+                            e.naziv ?? "",
+                            style: const TextStyle(fontWeight: FontWeight.normal),
+                          ),
+                          onTap: () async {
+                            var updatedKontinent = await Navigator.of(context).push<Drzava?>(
+                              MaterialPageRoute(
+                                builder: (context) => DrzavaDetailsScreen(drzava: e),
+                              ),
+                            );
+                            if (updatedKontinent != null) {
+                              setState(() {
+                                int index = result!.result.indexWhere((element) => element.id == updatedKontinent!.id);
+                                result!.result[index] = updatedKontinent;
+                              });
+                            }
+                            _loadData();
+                          },
+                        ),
+                       
+                       
+                      ],
+                    ),
+                  )
                   .toList() ??
-              []),
-    ));
+              [],
+          ),
+        ),
+      ),
+    );
   }
 }

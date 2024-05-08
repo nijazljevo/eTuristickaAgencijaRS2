@@ -25,5 +25,6 @@ namespace eTuriatickaAgencija.Controllers
         {
             return base.Insert(kontinentInsertRequest);
         }
+        
     }
 }

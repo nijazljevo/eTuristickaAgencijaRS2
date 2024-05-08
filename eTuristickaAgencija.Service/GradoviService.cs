@@ -18,7 +18,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Grad> AddFilter(IQueryable<Grad> query, GradSearchObject search = null)
+        public override IQueryable<Grad> AddFilter(IQueryable<Grad> query, GradSearchObject search=null)
         {
             var filteredQuery = base.AddFilter(query, search);
 

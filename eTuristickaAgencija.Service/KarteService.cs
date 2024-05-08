@@ -18,7 +18,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Kartum> AddFilter(IQueryable<Kartum> query, KartaSearchObject search = null)
+        public override IQueryable<Kartum> AddFilter(IQueryable<Kartum> query, KartaSearchObject search=null)
         {
             var filteredQuery = base.AddFilter(query, search);
 

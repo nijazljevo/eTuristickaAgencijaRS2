@@ -18,7 +18,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Hotel> AddFilter(IQueryable<Hotel> query, HotelSearchObject search = null)
+        public override IQueryable<Hotel> AddFilter(IQueryable<Hotel> query, HotelSearchObject search=null )
         {
             var filteredQuery = base.AddFilter(query, search);
 

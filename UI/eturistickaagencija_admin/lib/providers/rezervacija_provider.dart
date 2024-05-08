@@ -11,4 +11,11 @@ class RezervacijaProvider extends BaseProvider<Rezervacija>{
     // TODO: implement fromJson
     return Rezervacija.fromJson(data);
   }
+  Future<void> deleteRezervacija(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja rezrevacije: $e");
+  }
+}
 }

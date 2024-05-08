@@ -2,6 +2,7 @@ import 'package:eturistickaagencija_mobile/pages/Destinacija.dart';
 import 'package:eturistickaagencija_mobile/pages/Home.dart';
 import 'package:eturistickaagencija_mobile/pages/Hotel.dart';
 import 'package:eturistickaagencija_mobile/pages/Login.dart';
+import 'package:eturistickaagencija_mobile/pages/MojeRezervacije.dart';
 import 'package:eturistickaagencija_mobile/pages/Profil.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
         'Home': (context) => const Home(),
         'Profil': (context) => Profil(),
         'HotelListPage': (context) => const HotelListPage(),
-        'DestinacijaListPage': (context) => const DestinacijaListPage()
+        'DestinacijaListPage': (context) => const DestinacijaListPage(),
+        'MojeRezervacijeScreen': (context) => const MojeRezervacijeScreen()
       },
     );
   }

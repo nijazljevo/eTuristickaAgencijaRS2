@@ -12,6 +12,7 @@ namespace eTuristickaAgencija.Service
         List<Destinacija> GetPreporucenaDestinacija(int korisnikId);
         Task<T> Insert(TInsert insert);
         Task<T> Update(int id, TUpdate update);
+        Task<T> Delete (int id);
     }
 
 }

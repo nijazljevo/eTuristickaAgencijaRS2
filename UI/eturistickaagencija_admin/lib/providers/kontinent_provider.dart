@@ -18,4 +18,12 @@ class KontinentProvider extends BaseProvider<Kontinent>{
       return false;
     }
   }
+  Future<void> deleteKontinent(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja kontinenta: $e");
+  }
+}
+
 }

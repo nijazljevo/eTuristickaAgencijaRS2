@@ -20,5 +20,12 @@ class DrzavaProvider extends BaseProvider<Drzava>{
       return false;
     }
   }
+   Future<void> deleteDrzava(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja drzave: $e");
+  }
+}
 
 }

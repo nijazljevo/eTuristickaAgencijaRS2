@@ -18,7 +18,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Termin> AddFilter(IQueryable<Termin> query, TerminSearchObject search = null)
+        public override IQueryable<Termin> AddFilter(IQueryable<Termin> query, TerminSearchObject search =null)
         {
             var filteredQuery = base.AddFilter(query, search);
 

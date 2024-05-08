@@ -19,7 +19,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Clan> AddFilter(IQueryable<Clan> query, ClanSearchObject search = null)
+        public override IQueryable<Clan> AddFilter(IQueryable<Clan> query, ClanSearchObject search=null )
         {
             var filteredQuery = base.AddFilter(query, search);
 

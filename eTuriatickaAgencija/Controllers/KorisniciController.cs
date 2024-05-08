@@ -33,5 +33,6 @@ namespace eTuriatickaAgencija.Controllers
         {
             return base.Update(id,korisnikUpdateRequest);
         }
+       
     }
 }

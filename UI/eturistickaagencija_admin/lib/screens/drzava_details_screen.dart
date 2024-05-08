@@ -42,6 +42,7 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
 
   Future initForm() async {
     kontinentResult = await _kontinentProvider.get();
+    // ignore: avoid_print
     print(kontinentResult);
 
     setState(() {
@@ -53,7 +54,7 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Uspjeh"),
+        title: const Text("Uspjeh"),
         content: Text(message),
         actions: [
           TextButton(
@@ -61,7 +62,7 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
               Navigator.pop(context);
               _formKey.currentState?.reset(); 
             },
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
@@ -72,21 +73,65 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Greška"),
+        title: const Text("Greška"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
     );
   }
 
+void _showDeleteConfirmationDialog(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Potvrdite brisanje"),
+      content: const Text("Jeste li sigurni da želite obrisati ovu drzavu?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            try {
+              await _drzavaProvider.deleteDrzava(widget.drzava!.id!);
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pop();
+              // ignore: use_build_context_synchronously
+              _showSuccessDialog(context, 'Zapis uspješno obrisan.');
+            } on Exception catch (e) {
+              // ignore: avoid_print
+              print("Delete error: $e"); 
+              // ignore: use_build_context_synchronously
+              _showErrorDialog(context, 'Greška prilikom brisanja: $e');
+            }
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
-    return MasterScreenWidget(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.drzava?.naziv ?? 'Drzava',style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black) ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back), 
+          onPressed: () {
+            Navigator.pop(context); 
+          },
+        ),
+      ),
+    body: MasterScreenWidget(
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
@@ -94,7 +139,7 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState?.saveAndValidate() ?? false) {
@@ -106,6 +151,7 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
                         if (widget.drzava == null || widget.drzava!.naziv != naziv) {
                           final isDuplicate = await _drzavaProvider.checkDuplicate(naziv);
                           if (isDuplicate) {
+                            // ignore: use_build_context_synchronously
                             _showErrorDialog(context, 'Zapis već postoji.');
                             return; 
                           }
@@ -113,21 +159,24 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
 
                         if (widget.drzava == null) {
                           await _drzavaProvider.insert(request);
+                          // ignore: use_build_context_synchronously
                           _showSuccessDialog(context, 'Zapis uspješno dodan.');
                         } else {
                           await _drzavaProvider.update(widget.drzava!.id!, request);
+                          // ignore: use_build_context_synchronously
                           _showSuccessDialog(context, 'Zapis uspješno ažuriran.');
                         }
                       } on Exception catch (e) {
                         showDialog(
+                          // ignore: use_build_context_synchronously
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                            title: Text("Greška"),
+                            title: const Text("Greška"),
                             content: Text(e.toString()),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text("OK"),
+                                child: const Text("OK"),
                               )
                             ],
                           ),
@@ -137,26 +186,55 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) => AlertDialog(
-                          title: Text("Validacijska Greška"),
-                          content: Text("Molimo vas da popunite sva obavezna polja."),
+                          title: const Text("Validacijska Greška"),
+                          content: const Text("Molimo vas da popunite sva obavezna polja."),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: Text("OK"),
+                              child: const Text("OK"),
                             )
                           ],
                         ),
                       );
                     }
                   },
-                  child: Text("Sačuvaj"),
+                  child: const Padding(
+    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0), 
+    child: Text(
+      "Sačuvaj",
+      style: TextStyle(fontSize: 16.0), 
+    ),
+  ),
                 ),
-              )
-            ],
-          )
-        ],
+              ),
+               Padding(
+                  padding: const EdgeInsets.all(10),
+                child: ElevatedButton(
+  onPressed: () {
+    _showDeleteConfirmationDialog(context);
+  },
+           child: const Padding(
+    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.delete, color: Colors.red),
+        SizedBox(width: 5),
+        Text(
+          "Obriši",
+          style: TextStyle(fontSize: 16.0, color: Colors.red),
+        ),
+      ],
+    ),
+  ),
+),
+
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      title: this.widget.drzava?.naziv ?? "Detalji Države",
     );
   }
 
@@ -165,17 +243,23 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
       key: _formKey,
       initialValue: _initialValue,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 10,
-              ),
-              Expanded(
-                child: FormBuilderTextField(
+           const SizedBox(height: 10,),
+        Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
+ child: FormBuilderTextField(
                   decoration: InputDecoration(
                     labelText: "Naziv",
+                    labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                     errorText: _formKey.currentState?.fields['naziv']?.errorText,
+                    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
+  hintText: "Unesite naziv",
                   ),
                   name: "naziv",
                   validator: (value) {
@@ -186,16 +270,23 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
                   },
                 ),
               ),
-            ],
+            
           ),
-          Row(
-            children: [
-              Expanded(
+          const SizedBox(height: 10,),
+          Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
                 child: FormBuilderDropdown<String>(
                   name: 'kontinentId',
                   decoration: InputDecoration(
                     labelText: 'Kontinent',
+                    labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                     errorText: _formKey.currentState?.fields['kontinentId']?.errorText,
+                    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
                     suffix: IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () {
@@ -220,10 +311,8 @@ class _DrzavaDetailsScreenState extends State<DrzavaDetailsScreen> {
                   },
                 ),
               ),
-              SizedBox(
-                width: 10,
-              ),
-            ],
+             
+            
           ),
         ],
       ),

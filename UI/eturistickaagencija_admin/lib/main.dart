@@ -1,4 +1,5 @@
 import 'package:eturistickaagencija_admin/providers/agencija_provider.dart';
+import 'package:eturistickaagencija_admin/providers/clan_provider.dart';
 import 'package:eturistickaagencija_admin/providers/destinacija_provider.dart';
 import 'package:eturistickaagencija_admin/providers/drzava_provider.dart';
 import 'package:eturistickaagencija_admin/providers/grad.dart';
@@ -7,7 +8,9 @@ import 'package:eturistickaagencija_admin/providers/karta_provider.dart';
 import 'package:eturistickaagencija_admin/providers/kontinent_provider.dart';
 import 'package:eturistickaagencija_admin/providers/korisnik_provider.dart';
 import 'package:eturistickaagencija_admin/providers/rezervacija_provider.dart';
+import 'package:eturistickaagencija_admin/providers/termin_provider.dart';
 import 'package:eturistickaagencija_admin/providers/uloga_provider.dart';
+import 'package:eturistickaagencija_admin/providers/uposlenik_provider.dart';
 import 'package:eturistickaagencija_admin/screens/hotel_list_screen.dart';
 import 'package:eturistickaagencija_admin/utils/util.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +29,9 @@ void main() {
     ChangeNotifierProvider(create: (_) => RezervacijaProvider()),
     ChangeNotifierProvider(create: (_) => KartaProvider()),
     ChangeNotifierProvider(create: (_) => UlogaProvider()),
+    ChangeNotifierProvider(create: (_) => UposlenikProvider()),
+    ChangeNotifierProvider(create: (_) => TerminProvider()),
+    ChangeNotifierProvider(create: (_) => ClanProvider()),
     ],
     child: const MyMaterialApp(),
   ));
@@ -158,61 +164,63 @@ class MyMaterialApp extends StatelessWidget {
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
 
-  // ignore: prefer_final_fields, unnecessary_new
-  TextEditingController _usernameController = new TextEditingController();
-  // ignore: prefer_final_fields, unnecessary_new
-  TextEditingController _passwordController = new TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   late HotelProvider _hotelProvider;
 
   @override
   Widget build(BuildContext context) {
-    _hotelProvider = context.read<HotelProvider>();
+     _hotelProvider = context.read<HotelProvider>();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
-      ),
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(children: [
-                //  Image.network("https://www.fit.ba/content/public/images/og-image.jpg", height: 100, width: 100,),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 Image.asset(
                   "assets/images/download.png",
-                  height: 100,
-                  width: 100,
+                  height: 150,
+                  width: 150,
                 ),
-                TextField(
-                  decoration: const InputDecoration(
-                      labelText: "Username", prefixIcon: Icon(Icons.email)),
-                  controller: _usernameController,
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: "Username",
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    controller: _usernameController,
+                  ),
                 ),
-                const SizedBox(
-                  height: 8,
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      prefixIcon: Icon(Icons.lock),
+                      border: OutlineInputBorder(),
+                    ),
+                    controller: _passwordController,
+                    obscureText: true,
+                  ),
                 ),
-                TextField(
-                  decoration: const InputDecoration(
-                      labelText: "Password", prefixIcon: Icon(Icons.password)),
-                  controller: _passwordController,
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                ElevatedButton(
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.2,
+                  child: ElevatedButton(
                     onPressed: () async {
-                      var username = _usernameController.text;
-                      var password = _passwordController.text;
-                     // _passwordController.text = username;
-
-                      // ignore: avoid_print
-                      print("login proceed $username $password");
+                      final username = _usernameController.text;
+                      final password = _passwordController.text;
 
                       Authorization.username = username;
                       Authorization.password = password;
 
-                      try {
+                     try {
                         await _hotelProvider.get();
 
                         // ignore: use_build_context_synchronously
@@ -235,8 +243,10 @@ class LoginPage extends StatelessWidget {
                                 ));
                       }
                     },
-                    child: const Text("Login"))
-              ]),
+                    child: const Text("Login", style: TextStyle(fontSize: 14)),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

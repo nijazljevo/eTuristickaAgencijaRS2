@@ -29,5 +29,13 @@ namespace eTuriatickaAgencija.Controllers
             var results = ((ICRUDService<T, TSearch, TInsert, TUpdate>)this.Service).Update(id, update);
             return results;
         }
+         [HttpDelete("{id}")]
+public virtual T Delete(int id)
+{
+    var results = ((ICRUDService<T, TSearch, TInsert, TUpdate>)this.Service).Delete(id);
+    return results;
+}
+
+
     }
 }

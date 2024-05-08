@@ -22,13 +22,23 @@ class _KartaScreenState extends State<KartaScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _kartaProvider = context.read<KartaProvider>();
+    _loadData();
   }
-
+Future<void> _loadData() async {
+    var data = await _kartaProvider.get();
+    setState(() {
+      result = data;
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return MasterScreenWidget(
-      title_widget: const Text("Lista karata"),
-      child: Container(
+    // ignore: avoid_unnecessary_containers
+    return Container(
+      child: MasterScreenWidget(
+        title_widget: Container(
+          padding: const EdgeInsets.all(12),
+          child: const Text("Karte", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+        ),
         child: Column(
           children: [
             _buildSearch(),
@@ -47,17 +57,12 @@ class _KartaScreenState extends State<KartaScreen> {
           const SizedBox(
             width: 8,
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () async {
-              var filter = <String, dynamic>{};
-
-              var data = await _kartaProvider.get(filter: filter);
-
-              setState(() {
-                result = data;
-              });
+              await _loadData();
             },
-            child: const Text("Pretraga"),
+            icon: const Icon(Icons.search),
+            label: const Text("Pretraga"),
           ),
         ],
       ),
@@ -70,12 +75,14 @@ class _KartaScreenState extends State<KartaScreen> {
         child: DataTable(
           columns: const [
             
-            DataColumn(
-              label: Text(
-                'Datum Kreiranja',
-                style: TextStyle(fontStyle: FontStyle.italic),
+           DataColumn(
+                label: Expanded(
+                  child: Text(
+                    'Datum kreiranja',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
           ],
           rows: result?.result
                   .map(
@@ -83,8 +90,10 @@ class _KartaScreenState extends State<KartaScreen> {
                       
                       
                       cells: [
-                      DataCell(Text(
-                           e.datumKreiranja.toString()
+                      DataCell(
+                        Text(
+                           e.datumKreiranja.toString(),
+                           style: const TextStyle(fontWeight: FontWeight.normal),
                           
                     )),
 

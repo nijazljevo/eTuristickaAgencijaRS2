@@ -25,7 +25,7 @@ namespace eTuristickaAgencija.Service
             _baseState = baseState;
         }
 
-        public override IQueryable<Database.Destinacija> AddFilter(IQueryable<Database.Destinacija> query, DestinacijaSearchObject? search = null)
+        public override IQueryable<Database.Destinacija> AddFilter(IQueryable<Database.Destinacija> query, DestinacijaSearchObject? search=null )
         {
             var filteredQuery = base.AddFilter(query, search);
 

@@ -7,15 +7,14 @@ import '../utils/util.dart';
 import 'DestinacijaDetails.dart';
 
 class DestinacijaListPage extends StatefulWidget {
-  const DestinacijaListPage({super.key});
+  const DestinacijaListPage({Key? key}) : super(key: key);
 
   @override
   _DestinacijaListPageState createState() => _DestinacijaListPageState();
 }
 
 class _DestinacijaListPageState extends State<DestinacijaListPage> {
-  List<Destinacija> destinacija = [];
-  var rating = 0.0;
+  List<Destinacija> destinacije = [];
 
   @override
   void initState() {
@@ -25,13 +24,11 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
 
   Future<void> fetchDestinacijaData() async {
     try {
-      final List<dynamic>? fetchedData =
-          await APIService.get('Destinacije', null);
+      final List<dynamic>? fetchedData = await APIService.get('Destinacije', null);
       if (fetchedData != null) {
-        final List<Destinacija> fetchedDestinacije =
-            fetchedData.map((json) => Destinacija.fromJson(json)).toList();
+        final List<Destinacija> fetchedDestinacije = fetchedData.map((json) => Destinacija.fromJson(json)).toList();
         setState(() {
-          destinacija = fetchedDestinacije;
+          destinacije = fetchedDestinacije;
         });
       } else {
         showDialog(
@@ -39,8 +36,7 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Greška'),
-              content: const Text(
-                  'Došlo je do greške prilikom dohvata podataka destinacija.'),
+              content: const Text('Došlo je do greške prilikom dohvata podataka destinacija.'),
               actions: [
                 ElevatedButton(
                   onPressed: () {
@@ -60,8 +56,7 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Greška'),
-            content: const Text(
-                'Došlo je do greške prilikom dohvata podataka destinacija.'),
+            content: const Text('Došlo je do greške prilikom dohvata podataka destinacija.'),
             actions: [
               ElevatedButton(
                 onPressed: () {
@@ -80,39 +75,56 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Destinacije'),
+        title: Text(
+          'Destinacije',
+          style: TextStyle(
+            color: Colors.black, // Crna boja teksta
+            fontWeight: FontWeight.bold, // Boldiranje teksta
+          ),
+        ),
       ),
-      body: DataTable(
-        columns: const [
-          DataColumn(label: Text('Naziv')),
-          DataColumn(label: Text('Slika')),
-        ],
-        rows: destinacija
-            .map(
-              (Destinacija e) => DataRow(
-                onSelectChanged: (selected) {
-                  if (selected == true) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            DestinacijaDetailsScreen(destinacija: e),
+      body: SingleChildScrollView(
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Naziv')),
+            DataColumn(label: Text('Slika')),
+          ],
+          rows: destinacije
+              .map(
+                (destinacija) => DataRow(
+                  cells: [
+                    DataCell(
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => DestinacijaDetailsScreen(destinacija: destinacija),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          destinacija.naziv ?? '',
+                          style: TextStyle(
+                            color: Colors.black, // Crna boja teksta
+                            fontWeight: FontWeight.bold, // Boldiranje teksta
+                          ),
+                        ),
                       ),
-                    );
-                  }
-                },
-                cells: [
-                  DataCell(Text(e.naziv ?? "")),
-                  DataCell(e.slika != null && e.slika != ""
-                      ? SizedBox(
-                          width: 100,
-                          height: 100,
-                          child: imageFromBase64String(e.slika!),
-                        )
-                      : const Text("")),
-                ],
-              ),
-            )
-            .toList(),
+                    ),
+                    DataCell(
+                      destinacija.slika != null && destinacija.slika != ''
+                          ? SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: imageFromBase64String(destinacija.slika!),
+                            )
+                          : const Icon(Icons.image_not_supported),
+                    ),
+                  ],
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

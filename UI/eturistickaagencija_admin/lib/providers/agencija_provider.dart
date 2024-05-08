@@ -11,5 +11,11 @@ class AgencijaProvider extends BaseProvider<Agencija>{
     // TODO: implement fromJson
     return Agencija.fromJson(data);
   }
-
+Future<void> deleteAgencija(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja agencije: $e");
+  }
+}
 }

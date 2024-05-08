@@ -14,7 +14,7 @@ namespace eTuristickaAgencija.Service
         public UlogeService(TuristickaAgencijaContext eContext, IMapper mapper) : base(eContext, mapper)
         {
         }
-        public override IQueryable<Database.Uloga> AddFilter(IQueryable<Database.Uloga> query, UlogaSearchObject search = null)
+        public override IQueryable<Database.Uloga> AddFilter(IQueryable<Database.Uloga> query, UlogaSearchObject search=null )
         {
             var filteredQuery = base.AddFilter(query, search);
             if (!string.IsNullOrEmpty(search?.Naziv))

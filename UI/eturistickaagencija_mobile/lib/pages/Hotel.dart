@@ -33,7 +33,6 @@ class _HotelListPageState extends State<HotelListPage> {
           hotels = fetchedHotel;
         });
       } else {
-        // Prikazati grešku ako fetchedData nije validan
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -55,7 +54,6 @@ class _HotelListPageState extends State<HotelListPage> {
       }
     } catch (e) {
       print('Greška prilikom dohvata podataka hotela: $e');
-      // Prikazati grešku u slučaju iznimke
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -78,10 +76,16 @@ class _HotelListPageState extends State<HotelListPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+ Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hoteli'),
+        title: Text(
+          'Hoteli',
+          style: TextStyle(
+            color: Colors.black, // Crna boja teksta
+            fontWeight: FontWeight.bold, // Boldiranje teksta
+          ),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.only(top: 16.0),
@@ -92,38 +96,64 @@ class _HotelListPageState extends State<HotelListPage> {
     );
   }
 
-  Widget _buildDataListView() {
-    return SingleChildScrollView(
+
+ Widget _buildDataListView() {
+  return SingleChildScrollView(
+    child: Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16), // Pomak udesno
       child: DataTable(
+        columnSpacing: 10, // Postavljanje razmaka između stupaca
         dataRowColor: MaterialStateColor.resolveWith((states) => Colors.white),
         columns: const [
           DataColumn(
             label: Expanded(
-              child: Text(
-                'Naziv',
-                style: TextStyle(fontStyle: FontStyle.italic),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0), // Padding sa lijeve i desne strane
+                child: Text(
+                  'Naziv',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.black, // Crna boja teksta
+                    fontWeight: FontWeight.bold, // Boldiranje teksta
+                  ),
+                ),
               ),
             ),
           ),
           DataColumn(
             label: Expanded(
-              child: Text(
-                'Broj zvjezdica',
-                style: TextStyle(fontStyle: FontStyle.italic),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0), // Padding sa lijeve i desne strane
+                child: Text(
+                  'Broj zvjezdica',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.black, // Crna boja teksta
+                    fontWeight: FontWeight.bold, // Boldiranje teksta
+                  ),
+                ),
               ),
             ),
           ),
           DataColumn(
             label: Expanded(
-              child: Text(
-                'Slika',
-                style: TextStyle(fontStyle: FontStyle.italic),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0), // Padding sa lijeve i desne strane
+                child: Text(
+                  'Slika',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.black, // Crna boja teksta
+                    fontWeight: FontWeight.bold, // Boldiranje teksta
+                  ),
+                ),
               ),
             ),
           ),
         ],
         rows: hotels.map((Hotel e) {
           return DataRow(cells: [
+            
             DataCell(Text(e.naziv ?? "")),
             DataCell(Text(e.brojZvjezdica?.toString() ?? "")),
             DataCell(e.slika != ""
@@ -137,6 +167,9 @@ class _HotelListPageState extends State<HotelListPage> {
           ]);
         }).toList(),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 }

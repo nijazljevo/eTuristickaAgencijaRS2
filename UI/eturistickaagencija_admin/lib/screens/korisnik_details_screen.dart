@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:eturistickaagencija_admin/providers/korisnik_provider.dart';
@@ -66,7 +68,7 @@ void _showSuccessDialog(BuildContext context, String message) {
   showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
-      title: Text("Uspjeh"),
+      title: const Text("Uspjeh"),
       content: Text(message),
       actions: [
         TextButton(
@@ -74,7 +76,7 @@ void _showSuccessDialog(BuildContext context, String message) {
             Navigator.pop(context);
             _formKey.currentState?.reset(); 
           },
-          child: Text("OK"),
+          child: const Text("OK"),
         )
       ],
     ),
@@ -84,266 +86,415 @@ void _showSuccessDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Greška"),
+        title: const Text("Greška"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
     );
   }
+  void _showDeleteConfirmationDialog(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Potvrdite brisanje"),
+      content: const Text("Jeste li sigurni da želite obrisati ovaj kontinent?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            try {
+              await _korisnikProvider.deleteKorisnik(widget.korisnik!.id!);
+              Navigator.of(context).pop();
+              _showSuccessDialog(context, 'Zapis uspješno obrisan.');
+            } on Exception catch (e) {
+              print("Delete error: $e"); // Dodajte ispis u konzolu
+              _showErrorDialog(context, 'Greška prilikom brisanja: $e');
+            }
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
+
   @override
-  Widget build(BuildContext context) {
-    return MasterScreenWidget(
-      child: Column(
-        children: [
-          isLoading ? Container() : _buildForm(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState?.saveAndValidate() ?? false) {
-                      Map<String, dynamic> request =
-                          Map<String, dynamic>.from(_formKey.currentState!.value);
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        widget.korisnik?.korisnikoIme ?? 'Korisnik',
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+    ),
+    body: MasterScreenWidget(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            isLoading ? Container() : _buildForm(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState?.saveAndValidate() ?? false) {
+                        Map<String, dynamic> request =
+                            Map<String, dynamic>.from(_formKey.currentState!.value);
 
-                      request['slika'] = _base64Image;
+                        request['slika'] = _base64Image;
 
-                      try {
-                        final korisnickoIme = _formKey.currentState?.value['korisnikoIme'] as String;
-                       if (widget.korisnik == null || widget.korisnik!.korisnikoIme != korisnickoIme) {
-                          final isDuplicate = await _korisnikProvider.checkDuplicate(korisnickoIme);
-                          if (isDuplicate) {
-                            _showErrorDialog(context, 'Zapis već postoji.');
-                            return; 
+                        try {
+                          final korisnickoIme = _formKey.currentState?.value['korisnikoIme'] as String;
+                          if (widget.korisnik == null || widget.korisnik!.korisnikoIme != korisnickoIme) {
+                            final isDuplicate = await _korisnikProvider.checkDuplicate(korisnickoIme);
+                            if (isDuplicate) {
+                              _showErrorDialog(context, 'Zapis već postoji.');
+                              return; 
+                            }
                           }
+                          if (widget.korisnik == null) {
+                            await _korisnikProvider.insert(request);
+                            _showSuccessDialog(context, 'Zapis uspješno dodan.');
+                          } else {
+                            await _korisnikProvider.update(widget.korisnik!.id!, request);
+                            _showSuccessDialog(context, 'Zapis uspješno ažuriran.');
+                          }
+                        } on Exception catch (e) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: const Text("Error"),
+                              content: Text(e.toString()),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("OK"),
+                                )
+                              ],
+                            ),
+                          );
                         }
-                        if (widget.korisnik == null) {
-                          await _korisnikProvider.insert(request);
-                          _showSuccessDialog(context, 'Zapis uspješno dodan.');
-                        } else {
-                          await _korisnikProvider.update(
-                              widget.korisnik!.id!, request);
-                              _showSuccessDialog(context, 'Zapis uspješno ažuriran.');
-                        }
-                      } on Exception catch (e) {
+                      } else {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                            title: Text("Error"),
-                            content: Text(e.toString()),
+                            title: const Text("Validation Error"),
+                            content: const Text("Molimo vas da ispravno popunite sva obavezna polja."),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text("OK"),
+                                child: const Text("OK"),
                               )
                             ],
                           ),
                         );
                       }
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) => AlertDialog(
-                          title: Text("Validation Error"),
-                          content: Text("Molimo vas da ispravno popunite sva obavezna polja."),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text("OK"),
-                            )
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                  child: Text("Sačuvaj"),
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0), 
+                      child: Text(
+                        "Sačuvaj",
+                        style: TextStyle(fontSize: 16.0), 
+                      ),
+                    ),
+                  ),
                 ),
-              )
-            ],
-          )
-        ],
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showDeleteConfirmationDialog(context);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          SizedBox(width: 5),
+                          Text(
+                            "Obriši",
+                            style: TextStyle(fontSize: 16.0, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      title: this.widget.korisnik?.ime ?? "Korisnik details",
-    );
-  }
+    ),
+  );
+}
 
   FormBuilder _buildForm() {
     return FormBuilder(
       key: _formKey,
       initialValue: _initialValue,
-      child: Column(children: [
-        Row(
-          children: [
-            Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              height:45,
               child: FormBuilderTextField(
                 decoration: InputDecoration(
                   labelText: "Ime",
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['ime']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite ime",
                 ),
                 name: "ime",
-               validator: validateSurname,
+                validator: validateSurname,
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              height:45,
               child: FormBuilderTextField(
                 decoration: InputDecoration(
                   labelText: "Prezime",
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['prezime']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite prezime",
                 ),
                 name: "prezime",
-               validator: validateSurname,
+                validator: validateSurname,
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
+          ),
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              height:45,
               child: FormBuilderTextField(
                 decoration: InputDecoration(
                   labelText: "Email",
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['email']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite email",
                 ),
                 name: "email",
-               validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje 'Email' je obavezno.";
-  }
-  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-    return "Unesite ispravan format email adrese.";
-  }
-  return null;
-},
-
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Polje 'Email' je obavezno.";
+                  }
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    return "Unesite ispravan format email adrese.";
+                  }
+                  return null;
+                },
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
+          ),
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              height:45,
               child: FormBuilderTextField(
                 decoration: InputDecoration(
                   labelText: "Korisničko ime",
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['korisnikoIme']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite korisničko ime",
                 ),
                 name: "korisnikoIme",
                 validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  return null;
-},
-
+                  if (value == null || value.isEmpty) {
+                    return "Polje je obavezno.";
+                  }
+                  return null;
+                },
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
+          ),
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              height:45,
               child: FormBuilderTextField(
                 decoration: InputDecoration(
                   labelText: "Password",
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['password']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite password",
                 ),
                 name: "password",
-               validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  return null;
-},
-
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Polje je obavezno.";
+                  }
+                  return null;
+                },
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
+          ),
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              height:45,
               child: FormBuilderTextField(
                 decoration: InputDecoration(
                   labelText: "Password potvrda",
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['passwordPotvrda']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Potvrdite password",
                 ),
                 name: "passwordPotvrda",
-               validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje 'Password potvrda' je obavezno.";
-  }
-  if (value != _formKey.currentState?.value['password']) {
-    return "Password potvrda se ne podudara sa passwordom.";
-  }
-  return null;
-},
-
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: FormBuilderDropdown<String>(
-                name: 'ulogaId',
-                decoration: InputDecoration(
-                  labelText: 'Uloga',
-                  suffix: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      _formKey.currentState!.fields['ulogaId']?.reset();
-                    },
-                  ),
-                   hintText: 'Odaberite ulogu',
-                ),
-               
-                items: ulogaResult?.result
-                        .map((item) => DropdownMenuItem(
-                              alignment: AlignmentDirectional.center,
-                              value: item.id!.toString(),
-                              child: Text(item.naziv ?? ""),
-                            ))
-                        .toList() ??
-                    [],
                 validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  return null;
-},
-
+                  if (value == null || value.isEmpty) {
+                    return "Polje 'Password potvrda' je obavezno.";
+                  }
+                  if (value != _formKey.currentState?.value['password']) {
+                    return "Password potvrda se ne podudara sa passwordom.";
+                  }
+                  return null;
+                },
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: FormBuilderField(
-                name: 'imageId',
-                builder: ((field) {
-                  return InputDecorator(
-                    decoration: InputDecoration(
-                        label: Text('Odaberite sliku'),
-                        errorText: field.errorText),
-                    child: ListTile(
-                      leading: Icon(Icons.photo),
-                      title: Text("Odaberite sliku"),
-                      trailing: Icon(Icons.file_upload),
-                      onTap: getImage,
-                    ),
-                  );
-                }),
+          ),
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child:SizedBox(
+            width: 550,
+            height:55,
+            child: FormBuilderDropdown<String>(
+              name: 'ulogaId',
+              decoration: InputDecoration(
+                labelText: 'Uloga',
+                labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                errorText: _formKey.currentState?.fields['ulogaId']?.errorText,
+                border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
+                suffix: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    _formKey.currentState!.fields['ulogaId']?.reset();
+                  },
+                ),
+                hintText: 'Odaberite ulogu',
               ),
+              items: ulogaResult?.result
+                  .map((item) => DropdownMenuItem(
+                        alignment: AlignmentDirectional.center,
+                        value: item.id!.toString(),
+                        child: Text(item.naziv ?? ""),
+                      ))
+                  .toList() ??
+                  [],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return "Polje je obavezno.";
+                }
+                return null;
+              },
+            ),
             )
-          ],
-        )
-      ]),
+          ),
+          const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+             child:SizedBox(
+              width: 550,
+              height:60,
+            child: FormBuilderField(
+              name: 'imageId',
+              builder: ((field) {
+                return InputDecorator(
+                  decoration: InputDecoration(
+                      labelText: 'Odaberite sliku',
+                      labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      errorText: field.errorText,
+                      border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],),
+                  child: ListTile(
+                    leading: const Icon(Icons.photo),
+                    title: const Text("Odaberite sliku"),
+                    trailing: const Icon(Icons.file_upload),
+                    onTap: getImage,
+                  ),
+                );
+              }),
+            ),
+          ),
+          )
+        ],
+      ),
     );
   }
+
 
 
   File? _image;
@@ -367,10 +518,9 @@ String? validateSurname(String? value) {
     return "Ime i prezime može sadržavati samo slova i može imati najviše 25 karaktera.";
   }
 
-  return null;  // Vraća null ako je sve u redu
+  return null;  
 }
 
 bool isValidSurname(String value) {
-  // Provjerava je li prezime sastavljeno samo od slova i ima najviše 25 karaktera
   return RegExp(r'^[a-zA-Z]+$').hasMatch(value) && value.length <= 25;
 }

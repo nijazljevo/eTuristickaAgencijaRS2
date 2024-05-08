@@ -1,12 +1,10 @@
-// ignore: file_names
 import 'dart:convert';
-import 'package:eturistickaagencija_mobile/pages/Rezervacija.dart';
 import 'package:flutter/material.dart';
 import 'package:eturistickaagencija_mobile/model/destinacija.dart';
 import 'package:eturistickaagencija_mobile/services/APIService.dart';
 import 'package:eturistickaagencija_mobile/utils/util.dart';
-
 import '../model/ocjena.dart';
+import 'Rezervacija.dart';
 
 class DestinacijaDetailsScreen extends StatefulWidget {
   final Destinacija destinacija;
@@ -17,90 +15,107 @@ class DestinacijaDetailsScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _DestinacijaDetailsScreenState createState() => _DestinacijaDetailsScreenState();
 }
 
 class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
   double rating = 0.0;
   String comment = '';
+  bool hasRated = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalji destinacije'),
+        title: Text(
+          'Detalji destinacije',
+          style: TextStyle(
+            color: Colors.black, // Crna boja teksta
+            fontWeight: FontWeight.bold, // Boldiranje teksta
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.destinacija.naziv ?? '',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.destinacija.naziv ?? '',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            widget.destinacija.slika != null && widget.destinacija.slika!.isNotEmpty
+                ? SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: imageFromBase64String(widget.destinacija.slika!),
+                  )
+                : const Text('Nema dostupne slike'),
+            const SizedBox(height: 16),
+            Text(
+              'Ocijenite destinaciju:',
+              style: TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 8),
+            Slider(
+              value: rating,
+              min: 0.0,
+              max: 5.0,
+              divisions: 5,
+              onChanged: (value) {
+                setState(() {
+                  rating = value;
+                });
+              },
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Vaša ocjena: $rating',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Komentar',
+              ),
+              onChanged: (value) {
+                setState(() {
+                  comment = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    if (!hasRated) {
+                      submitRating();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Već ste ocijenili ovu destinaciju."),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Ocijeni'),
                 ),
-              ),
-              const SizedBox(height: 16),
-              widget.destinacija.slika != null && widget.destinacija.slika!.isNotEmpty
-                  ? SizedBox(
-                      width: 200,
-                      height: 200,
-                      child: imageFromBase64String(widget.destinacija.slika!),
-                    )
-                  : const Text('Nema dostupne slike'),
-              const SizedBox(height: 16),
-              const Text(
-                'Ocijenite destinaciju:',
-                style: TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 8),
-              Slider(
-                value: rating,
-                min: 0.0,
-                max: 5.0,
-                divisions: 5,
-                onChanged: (value) {
-                  setState(() {
-                    rating = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Vaša ocjena: $rating',
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Komentar',
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    navigateToReservation();
+                  },
+                  child: const Text('Rezervisi'),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    comment = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  submitRating();
-                },
-                child: const Text('Ocijeni'),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  navigateToReservation();
-                },
-                child: const Text('Rezervisi'),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -117,11 +132,12 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
     final jsonData = ocjena.toJson();
     final jsonString = jsonEncode(jsonData);
   
-    // ignore: avoid_print
     print('JSON data: $jsonString');
 
     await APIService.post("Ocjene", json.encode(jsonData));
-    // ignore: use_build_context_synchronously
+     setState(() {
+      hasRated = true;
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: SizedBox(
@@ -140,4 +156,3 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
     );
   }
 }
-

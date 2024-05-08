@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -16,7 +17,7 @@ import '../widgets/master_screen.dart';
 class HotelDetailsScreen extends StatefulWidget {
   final Hotel? hotel;
 
-  HotelDetailsScreen({Key? key, this.hotel}) : super(key: key);
+  const HotelDetailsScreen({Key? key, this.hotel}) : super(key: key);
 
   @override
   State<HotelDetailsScreen> createState() => _HotelDetailsScreenState();
@@ -64,7 +65,7 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Uspjeh"),
+        title: const Text("Uspjeh"),
         content: Text(message),
         actions: [
           TextButton(
@@ -72,23 +73,56 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
               Navigator.pop(context);
               _formKey.currentState?.reset();
             },
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
     );
   }
+void _showDeleteConfirmationDialog(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Potvrdite brisanje"),
+      content: const Text("Jeste li sigurni da želite obrisati ovaj kontinent?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            try {
+              await _hotelProvider.deleteHotel(widget.hotel!.id!);
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pop();
+              // ignore: use_build_context_synchronously
+              _showSuccessDialog(context, 'Zapis uspješno obrisan.');
+            } on Exception catch (e) {
+              // ignore: avoid_print
+              print("Delete error: $e"); // Dodajte ispis u konzolu
+              // ignore: use_build_context_synchronously
+              _showErrorDialog(context, 'Greška prilikom brisanja: $e');
+            }
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
 
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Greška"),
+        title: const Text("Greška"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
@@ -96,17 +130,30 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MasterScreenWidget(
+ Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        widget.hotel?.naziv ?? 'Hotel',
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+    ),
+    body: MasterScreenWidget(
       child: Column(
         children: [
           isLoading ? Container() : _buildForm(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: ElevatedButton(
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState?.saveAndValidate() ?? false) {
                       Map<String, dynamic> request =
@@ -121,41 +168,46 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
                         if (widget.hotel == null || widget.hotel!.naziv != naziv) {
                           final isDuplicate = await _hotelProvider.checkDuplicate(naziv);
                           if (isDuplicate) {
+                            // ignore: use_build_context_synchronously
                             _showErrorDialog(context, 'Zapis već postoji.');
                             return;
                           }
                         }
                         if (widget.hotel == null) {
                           await _hotelProvider.insert(request);
+                          // ignore: use_build_context_synchronously
                           _showSuccessDialog(context, 'Zapis uspješno dodan.');
                         } else {
                           await _hotelProvider.update(widget.hotel!.id!, request);
+                          // ignore: use_build_context_synchronously
                           _showSuccessDialog(context, 'Zapis uspješno ažuriran.');
                         }
                       } on FormatException catch (e) {
                         showDialog(
+                          // ignore: use_build_context_synchronously
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                            title: Text("Greška"),
-                            content: Text("Neispravan format podataka slike."),
+                            title: const Text("Greška"),
+                            content: const Text("Neispravan format podataka slike."),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text("OK"),
+                                child: const Text("OK"),
                               )
                             ],
                           ),
                         );
                       } on Exception catch (e) {
                         showDialog(
+                          // ignore: use_build_context_synchronously
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                            title: Text("Greška"),
+                            title: const Text("Greška"),
                             content: Text(e.toString()),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text("OK"),
+                                child: const Text("OK"),
                               )
                             ],
                           ),
@@ -165,43 +217,84 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) => AlertDialog(
-                          title: Text("Greška pri validaciji"),
-                          content: Text("Molimo vas da popunite sva obavezna polja."),
+                          title: const Text("Greška pri validaciji"),
+                          content: const Text("Molimo vas da popunite sva obavezna polja."),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: Text("OK"),
+                              child: const Text("OK"),
                             )
                           ],
                         ),
                       );
                     }
                   },
-                  child: Text("Sačuvaj"),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0), 
+                    child: Text(
+                      "Sačuvaj",
+                      style: TextStyle(fontSize: 16.0), 
+                    ),
+                  ),
                 ),
-              )
-            ],
-          )
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: ElevatedButton(
+              onPressed: () {
+                _showDeleteConfirmationDialog(context);
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 5),
+                    Text(
+                      "Obriši",
+                      style: TextStyle(fontSize: 16.0, color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
-      title: widget.hotel?.naziv ?? "Hotel details",
-    );
-  }
+    ),
+  );
+}
+
+  
 
   FormBuilder _buildForm() {
   return FormBuilder(
     key: _formKey,
     initialValue: _initialValue,
     child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
+         const SizedBox(height: 10,),
+        Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
               child: FormBuilderTextField(
-                decoration: InputDecoration(
-                  labelText: "Naziv",
-                  errorText: _formKey.currentState?.fields['naziv']?.errorText,
-                ),
+               decoration: InputDecoration(
+                
+  labelText: "Naziv",
+  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+  errorText: _formKey.currentState?.fields['naziv']?.errorText,
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
+  hintText: "Unesite naziv",
+),
+
                 name: "naziv",
                 validator: (value) {
   if (value == null || value.isEmpty) {
@@ -212,19 +305,25 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
 
               ),
             ),
-          ],
         ),
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                
-                children: [
-                  FormBuilderTextField(
-                    decoration: InputDecoration(labelText: "Broj zvjezdica"),
+        const SizedBox(height: 10,),     
+        Padding(padding: const EdgeInsets.only(left: 10),
+              child: SizedBox(
+                width: 550,
+                 child: FormBuilderTextField(
+                    decoration: InputDecoration(
+                    labelText: "Broj zvjezdica",
+                     labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                     errorText: _formKey.currentState?.fields['brojZvjezdica']?.errorText,
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
+  hintText: "Unesite broj zvjezdica",
+                    ),
+                    
                     name: "brojZvjezdica",
-                   // initialValue: _initialValue['brojZvjezdica'],
-                   // onChanged: (_) => _formKey.currentState?.fields['brojZvjezdica']?.didChange(true),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Polje je obavezno.";
@@ -236,21 +335,27 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 10),
+                  
                  
-                ],
+                
               ),
             ),
-          ],
-        ),
-       Row(
-          children: [
-            Expanded(
+          const SizedBox(height: 10,),
+        
+       Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
               child: FormBuilderDropdown<String>(
                 name: 'gradId',
                 decoration: InputDecoration(
                   labelText: 'Grad',
+                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                   errorText: _formKey.currentState?.fields['gradId']?.errorText,
+                  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
                   suffix: IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () {
@@ -276,26 +381,31 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
 
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
-          ],
+           
+          
         ),
-        Row(
-          children: [
-            Expanded(
+        const SizedBox(height: 10,),
+         Padding(padding: const EdgeInsets.only(left: 10),
+        child:SizedBox(
+              width: 550,
               child: FormBuilderField(
                 name: 'slika',
                 builder: (field) {
                   return InputDecorator(
                     decoration: InputDecoration(
-                      label: Text('Odaberite sliku'),
+                      label: const Text('Odaberite sliku'),
+                      labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                       errorText: field.errorText,
+                      border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(7.0),
+  ),
+  filled: true,
+  fillColor: Colors.grey[200],
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.photo),
-                      title: Text("Select image"),
-                      trailing: Icon(Icons.file_upload),
+                      leading: const Icon(Icons.photo),
+                      title: const Text("Select image"),
+                      trailing: const Icon(Icons.file_upload),
                       onTap: getImage,
                     ),
                   );
@@ -303,7 +413,7 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
                 initialValue: _initialValue['slika'],
               ),
             ),
-          ],
+          
         ),
       ],
     ),
@@ -323,9 +433,11 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
         }
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error picking image: $e');
     }
 
+    // ignore: avoid_print
     print('Image selected successfully.');
   }
 

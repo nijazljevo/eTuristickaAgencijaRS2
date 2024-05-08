@@ -49,12 +49,12 @@ void _showSuccessDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text("Uspjeh"),
+        title: const Text("Uspjeh"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
+            child: const Text("OK"),
           )
         ],
       ),
@@ -62,7 +62,17 @@ void _showSuccessDialog(BuildContext context, String message) {
   }
   @override
   Widget build(BuildContext context) {
-    return MasterScreenWidget(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.agencija?.email ?? 'Email',style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black) ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back), 
+          onPressed: () {
+            Navigator.pop(context); 
+          },
+        ),
+      ),
+    body:MasterScreenWidget(
       // ignore: sort_child_properties_last
       child: Column(
         children: [
@@ -82,6 +92,7 @@ void _showSuccessDialog(BuildContext context, String message) {
                         }
                       } on Exception catch (e) {
                         showDialog(
+                          // ignore: use_build_context_synchronously
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
                             title: const Text("Error"),
@@ -97,15 +108,20 @@ void _showSuccessDialog(BuildContext context, String message) {
                       }
                     }
                   },
-                  child: const Text('Sacuvaj'),
+                  child: const Padding(
+    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0), 
+    child: Text(
+      "Sačuvaj",
+      style: TextStyle(fontSize: 16.0), 
+    ),
+  ),
                 ),
               )
             ],
           )
         ],
       ),
-      title: widget.agencija?.email ?? 'Agencija details',
-    );
+    ),);
   }
 
   FormBuilder _buildForm() {
@@ -117,53 +133,96 @@ void _showSuccessDialog(BuildContext context, String message) {
         'telefon': widget.agencija?.telefon ?? '',
       },
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FormBuilderTextField(
-            decoration: const InputDecoration(
-              labelText: "Adresa",
-            ),
-            name: "adresa",
-            validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  return null;
-},
+          const SizedBox(height: 10,),
 
-          ),
-          FormBuilderTextField(
-            decoration: const InputDecoration(
-              labelText: "Email",
-            ),
-            name: "email",
-            validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje 'Email' je obavezno.";
-  }
-  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-    return "Unesite ispravan format email adrese.";
-  }
-  return null;
-},
-
-          ),
-         FormBuilderTextField(
-  decoration: InputDecoration(
-    labelText: "Telefon",
+         Padding(
+  padding: const EdgeInsets.only(left: 10),
+  child: SizedBox(
+    width: 550,
+    child: FormBuilderTextField(
+      decoration: InputDecoration(
+        labelText: "Adresa",
+        labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(7.0), 
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+        hintText: "Unesite adresu",
+      ),
+      name: "adresa",
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Polje je obavezno.";
+        }
+        return null;
+      },
+    ),
   ),
-  name: "telefon",
- validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  RegExp regExp = RegExp(r'^[0-9\-\+\s\(\)]{9,15}$');
-  if (!regExp.hasMatch(value)) {
-    return "Neispravan format telefonskog broja.";
-  }
-  return null;
-},
+),
+const SizedBox(height: 10,),
 
-  keyboardType: TextInputType.phone,
+     Padding(
+  padding: const EdgeInsets.only(left: 10),
+  child: SizedBox(
+    width: 550,
+    child: FormBuilderTextField(
+      decoration: InputDecoration(
+        labelText: "Email",
+        labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(7.0), 
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+        hintText: "Unesite email",
+      ),
+      name: "email",
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Polje 'Email' je obavezno.";
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return "Unesite ispravan format email adrese.";
+        }
+        return null;
+      },
+    ),
+  ),
+),
+const SizedBox(height: 10,),
+
+       Padding(
+  padding: const EdgeInsets.only(left: 10),
+  child: SizedBox(
+    width: 550,
+    child: FormBuilderTextField(
+      decoration: InputDecoration(
+        labelText: "Telefon",
+        labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(7.0), 
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+        hintText: "Unesite telefon",
+      ),
+      name: "telefon",
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Polje je obavezno.";
+        }
+        RegExp regExp = RegExp(r'^[0-9\-\+\s\(\)]{9,15}$');
+        if (!regExp.hasMatch(value)) {
+          return "Neispravan format telefonskog broja.";
+        }
+        return null;
+      },
+      keyboardType: TextInputType.phone,
+    ),
+  ),
 ),
 
         ],

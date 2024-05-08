@@ -20,7 +20,7 @@ namespace eTuristickaAgencija.Service
         {
         }
 
-        public override IQueryable<Database.Kontinent> AddFilter(IQueryable<Database.Kontinent> query, KontinentSearchObject search = null)
+        public override IQueryable<Database.Kontinent> AddFilter(IQueryable<Database.Kontinent> query, KontinentSearchObject search=null)
         {
             var filteredQuery = base.AddFilter(query, search);
 
@@ -38,5 +38,6 @@ namespace eTuristickaAgencija.Service
 
             return filteredQuery;
         }
+     
     }
 }

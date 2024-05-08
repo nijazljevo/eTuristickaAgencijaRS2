@@ -64,7 +64,7 @@ namespace eTuristickaAgencija.Service
             return Convert.ToBase64String(inArray);
         }
 
-        public override IQueryable<Korisnik> AddFilter(IQueryable<Korisnik> query, KorisnikSearchObject search = null)
+        public override IQueryable<Korisnik> AddFilter(IQueryable<Korisnik> query, KorisnikSearchObject search=null)
         {
             var filteredQuery = base.AddFilter(query, search);
 

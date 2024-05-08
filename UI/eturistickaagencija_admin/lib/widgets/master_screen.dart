@@ -1,5 +1,8 @@
 import 'package:eturistickaagencija_admin/main.dart';
+import 'package:eturistickaagencija_admin/screens/clan_list_screen.dart';
 import 'package:eturistickaagencija_admin/screens/hotel_list_screen.dart';
+import 'package:eturistickaagencija_admin/screens/termin_list_screen.dart';
+import 'package:eturistickaagencija_admin/screens/uposlenik_list_screen.dart';
 import 'package:flutter/material.dart';
 import '../screens/agencija_list_screen.dart';
 import '../screens/destinacija_list_screen.dart';
@@ -123,7 +126,30 @@ class _MasterScreenWidgetState extends State<MasterScreenWidget> {
                 );
               },
             ),
-            
+            ListTile(
+              title: const Text('Uposlenici'),
+              onTap: (){
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context)=>   const UposlenikListScreen(),),
+                );
+              },
+            ),
+              ListTile(
+              title: const Text('Termini'),
+              onTap: (){
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context)=>   const TerminListScreen(),),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Clanovi'),
+              onTap: (){
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context)=>   const ClanListScreen(),),
+                );
+              },
+            ),
           ],
         ),
       ),

@@ -28,15 +28,29 @@ class _GradListScreenState extends State<GradListScreen> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     _gradProvider = context.read<GradProvider>();
+    _loadData();
   }
-
+Future<void> _loadData() async {
+    var data = await _gradProvider.get(filter: {'naziv': _nazivController.text});
+    setState(() {
+      result = data;
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return MasterScreenWidget(
-      title_widget: const Text("Grad list"),
-      // ignore: avoid_unnecessary_containers
-      child: Container(
-        child: Column(children: [_buildSearch(), _buildDataListView()]),
+    // ignore: avoid_unnecessary_containers
+    return Container(
+      child: MasterScreenWidget(
+        title_widget: Container(
+          padding: const EdgeInsets.all(12),
+          child: const Text("Gradovi", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+        ),
+        child: Column(
+          children: [
+            _buildSearch(),
+            _buildDataListView(),
+          ],
+        ),
       ),
     );
   }
@@ -48,7 +62,15 @@ class _GradListScreenState extends State<GradListScreen> {
         children: [
           Expanded(
             child: TextField(
-              decoration: const InputDecoration(labelText: "Naziv"),
+              decoration: InputDecoration(
+                labelText: "Naziv",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+                contentPadding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+              ),
               controller: _nazivController,
             ),
           ),
@@ -56,81 +78,90 @@ class _GradListScreenState extends State<GradListScreen> {
             width: 8,
           ),
          
-          ElevatedButton(
-              onPressed: () async {
-                // ignore: avoid_print
-                print("login proceed");
-
-                var data = await _gradProvider.get(filter: {
-                  'naziv': _nazivController.text,
-                });
-
-                setState(() {
-                  result = data;
-                });
-
-              },
-              child: const Text("Pretraga")),
+          ElevatedButton.icon(
+            onPressed: () async {
+              await _loadData();
+            },
+            icon: const Icon(Icons.search),
+            label: const Text("Pretraga"),
+          ),
           const SizedBox(
             width: 8,
           ),
-          ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>  GradDetailsScreen(
-                     grad: null,
-                    ),
-                  ),
-                );
-              },
-              child: const Text("Dodaj"))
+          ElevatedButton.icon(
+            onPressed: () async {
+              var newGrad = await Navigator.of(context).push<Grad?>(
+                MaterialPageRoute(
+                  builder: (context) => GradDetailsScreen(grad: null),
+                ),
+              );
+              if (newGrad != null) {
+                setState(() {
+                  result!.result.add(newGrad);
+                });
+              }
+              _loadData();
+            },
+              icon: const Icon(Icons.add),
+            label: const Text("Dodaj"),)
         ],
       ),
     );
   }
 
-  Widget _buildDataListView() {
+Widget _buildDataListView() {
     return Expanded(
-        child: SingleChildScrollView(
-      child: DataTable(
-          columns: const [
-           
-           
-            DataColumn(
-              label: Expanded(
-                child: Text(
-                  'Naziv',
-                  style: TextStyle(fontStyle: FontStyle.italic),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 400,right:400), 
+          child: DataTable(
+            headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+            columns: const [
+              DataColumn(
+                
+                label: Expanded(
+                  child: Text(
+                    'Naziv',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
-           
-           
-           
-          ],
-          rows: result?.result
-    .map((Grad e) {
-      return DataRow(
-        onSelectChanged: (selected) {
-          if (selected == true) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => GradDetailsScreen(
-                  grad: e,
-                ),
-              ),
-            );
-          }
-        },
-        cells: [
-          DataCell(Text(e.naziv ?? "")),
-        ],
-      );
-    })
-    .toList() ??
-    [],
-),
-    ));
+             
+            ],
+            rows: result?.result
+                  .map(
+                    (Grad e) => DataRow(
+                      cells: [
+                        DataCell(
+                          Text(
+                            e.naziv ?? "",
+                            style: const TextStyle(fontWeight: FontWeight.normal),
+                          ),
+                          onTap: () async {
+                            var updatedKontinent = await Navigator.of(context).push<Grad?>(
+                              MaterialPageRoute(
+                                builder: (context) => GradDetailsScreen(grad: e),
+                              ),
+                            );
+                            if (updatedKontinent != null) {
+                              setState(() {
+                                int index = result!.result.indexWhere((element) => element.id == updatedKontinent!.id);
+                                result!.result[index] = updatedKontinent;
+                              });
+                            }
+                            _loadData();
+                          },
+                        ),
+                        
+                        
+                      ],
+                    ),
+                  )
+                  .toList() ??
+              [],
+          ),
+        ),
+      ),
+    );
   }
 }

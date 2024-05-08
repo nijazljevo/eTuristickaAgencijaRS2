@@ -20,4 +20,11 @@ class HotelProvider extends BaseProvider<Hotel>{
       return false;
     }
   }
+  Future<void> deleteHotel(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja hotela: $e");
+  }
+}
 }

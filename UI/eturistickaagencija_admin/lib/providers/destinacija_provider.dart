@@ -21,5 +21,12 @@ class DestinacijaProvider extends BaseProvider<Destinacija>{
       return false;
     }
   }
+  Future<void> deleteDestinacija(int id) async {
+  try {
+    await delete(id);
+  } catch (e) {
+    throw Exception("Greška prilikom brisanja destinacije: $e");
+  }
+}
 
 }

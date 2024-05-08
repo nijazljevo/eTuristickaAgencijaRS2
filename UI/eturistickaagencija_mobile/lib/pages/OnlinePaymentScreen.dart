@@ -16,7 +16,13 @@ class OnlinePaymentScreen extends StatefulWidget {
 
 class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   Map<String, dynamic>? paymentIntent;
-
+@override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      await makePayment();
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,12 +30,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
         title: const Text('Placanje'),
       ),
       body: Center(
-        child: TextButton(
-          child: const Text('Izvrsite uplatu'),
-          onPressed: () async {
-            await makePayment();
-          },
-        ),
+        child: CircularProgressIndicator(), 
       ),
     );
   }
