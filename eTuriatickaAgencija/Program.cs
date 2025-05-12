@@ -43,6 +43,18 @@ builder.Services.AddControllers(x =>
 {
     x.Filters.Add<ErrorFilter>();
 });
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader(); // Ensure Authorization header is allowed
+    });
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -62,9 +74,7 @@ builder.Services.AddSwaggerGen(c =>
             },
             new string[]{}
     } });
-
 });
-
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TuristickaAgencijaContext>(options =>
@@ -87,6 +97,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors();
 
 app.MapControllers();
 using (var scope = app.Services.CreateScope())
@@ -97,8 +108,6 @@ using (var scope = app.Services.CreateScope())
     var conn = dataContext.Database.GetConnectionString();
 
     dataContext.Database.Migrate();
-
-
 }
 
 app.Run();
