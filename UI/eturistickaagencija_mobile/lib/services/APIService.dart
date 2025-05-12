@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../model/destinacija.dart';
@@ -273,7 +274,9 @@ class APIService {
         return bool.tryParse(response.body) ?? false;
       }
     } catch (e) {
-      print('Error checking rating: $e');
+      if (kDebugMode) {
+        print('Error checking rating: $e');
+      }
     }
     return false;
   }
