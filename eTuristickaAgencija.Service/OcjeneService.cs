@@ -11,15 +11,17 @@ using System.Threading.Tasks;
 
 namespace eTuristickaAgencija.Service
 {
-     public class OcjeneService
-       : BaseCRUDService<Models.Ocjena, Database.Ocjena, OcjenaSearchObject, OcjenaInsertRequest, OcjenaUpdateRequest>, IOcjenaService
+    public class OcjeneService
+      : BaseCRUDService<Models.Ocjena, Database.Ocjena, OcjenaSearchObject, OcjenaInsertRequest, OcjenaUpdateRequest>, IOcjenaService
     {
+        protected TuristickaAgencijaContext _context;
 
         public OcjeneService(TuristickaAgencijaContext eContext, IMapper mapper) : base(eContext, mapper)
         {
+            _context = eContext;
         }
 
-        public override IQueryable<Database.Ocjena> AddFilter(IQueryable<Database.Ocjena> query, OcjenaSearchObject search=null )
+        public override IQueryable<Database.Ocjena> AddFilter(IQueryable<Database.Ocjena> query, OcjenaSearchObject search = null)
         {
             var filteredQuery = base.AddFilter(query, search);
 
@@ -28,11 +30,13 @@ namespace eTuristickaAgencija.Service
                 filteredQuery = filteredQuery.Where(x => x.Id == search.Id);
             }
 
-
-           
-           
-
             return filteredQuery;
+        }
+
+        public async Task<bool> HasUserRatedAsync(int userId, int destinationId)
+        {
+            return _context.Ocjenas
+                .Any(x => x.KorisnikId == userId && x.DestinacijaId == destinationId);
         }
     }
 }

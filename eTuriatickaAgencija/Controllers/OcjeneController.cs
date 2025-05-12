@@ -13,6 +13,7 @@ namespace eTuriatickaAgencija.Controllers
     public class OcjeneController : BaseCRUDController<eTuristickaAgencija.Models.Ocjena, OcjenaSearchObject, OcjenaInsertRequest, OcjenaUpdateRequest>
     {
         private readonly IOcjenaService _ocjenaService;
+
         public OcjeneController(ILogger<BaseController<Ocjena, OcjenaSearchObject>> logger, IOcjenaService ocjenaService) : base(logger, ocjenaService)
         {
             _ocjenaService = ocjenaService;
@@ -24,6 +25,12 @@ namespace eTuriatickaAgencija.Controllers
         {
             return base.Insert(ocjenaInsertRequest);
         }
-        
+
+        [HttpGet("check")]
+        public async Task<IActionResult> Check([FromQuery] int userId, [FromQuery] int destinationId)
+        {
+            var hasRated = await _ocjenaService.HasUserRatedAsync(userId, destinationId);
+            return Ok(hasRated);
+        }
     }
 }
