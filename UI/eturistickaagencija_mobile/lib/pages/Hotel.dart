@@ -23,9 +23,8 @@ class _HotelListPageState extends State<HotelListPage> {
   }
 
   Future<void> fetchHotelData() async {
-   try {
-      final List<dynamic>? fetchedData =
-          await APIService.get('Hoteli', null);
+    try {
+      final List<dynamic>? fetchedData = await APIService.get('Hoteli', null);
       if (fetchedData != null) {
         final List<Hotel> fetchedHotel =
             fetchedData.map((json) => Hotel.fromJson(json)).toList();
@@ -76,100 +75,82 @@ class _HotelListPageState extends State<HotelListPage> {
   }
 
   @override
- Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Hoteli',
           style: TextStyle(
-            color: Colors.black, // Crna boja teksta
-            fontWeight: FontWeight.bold, // Boldiranje teksta
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(top: 16.0),
-        children: [
-          _buildDataListView(),
-        ],
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: hotels.length,
+        itemBuilder: (context, index) {
+          final hotel = hotels[index];
+          return Card(
+            elevation: 2,
+            margin: const EdgeInsets.only(bottom: 16.0),
+            child: ExpansionTile(
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      hotel.naziv ?? "",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: List.generate(
+                      hotel.brojZvjezdica ?? 0,
+                      (index) => const Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              children: [
+                if (hotel.slika != null && hotel.slika!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      width: double.infinity,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: imageFromBase64String(hotel.slika!),
+                      ),
+                    ),
+                  ),
+                if (hotel.naziv != null && hotel.naziv!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Text(
+                      hotel.naziv!,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
-
-
- Widget _buildDataListView() {
-  return SingleChildScrollView(
-    child: Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16), // Pomak udesno
-      child: DataTable(
-        columnSpacing: 10, // Postavljanje razmaka između stupaca
-        dataRowColor: MaterialStateColor.resolveWith((states) => Colors.white),
-        columns: const [
-          DataColumn(
-            label: Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0), // Padding sa lijeve i desne strane
-                child: Text(
-                  'Naziv',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.black, // Crna boja teksta
-                    fontWeight: FontWeight.bold, // Boldiranje teksta
-                  ),
-                ),
-              ),
-            ),
-          ),
-          DataColumn(
-            label: Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0), // Padding sa lijeve i desne strane
-                child: Text(
-                  'Broj zvjezdica',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.black, // Crna boja teksta
-                    fontWeight: FontWeight.bold, // Boldiranje teksta
-                  ),
-                ),
-              ),
-            ),
-          ),
-          DataColumn(
-            label: Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0), // Padding sa lijeve i desne strane
-                child: Text(
-                  'Slika',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.black, // Crna boja teksta
-                    fontWeight: FontWeight.bold, // Boldiranje teksta
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-        rows: hotels.map((Hotel e) {
-          return DataRow(cells: [
-            
-            DataCell(Text(e.naziv ?? "")),
-            DataCell(Text(e.brojZvjezdica?.toString() ?? "")),
-            DataCell(e.slika != ""
-                ? Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.white,
-                    child: imageFromBase64String(e.slika!),
-                  )
-                : const Text("")),
-          ]);
-        }).toList(),
-      ),
-    ),
-  );
-}
-
-
 }

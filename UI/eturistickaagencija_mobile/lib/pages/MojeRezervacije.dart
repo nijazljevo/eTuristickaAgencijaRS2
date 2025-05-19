@@ -131,7 +131,7 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                                                   Navigator.of(context).pop();
                                                   setState(() {
                                                     rezervacija.otkazana = !newValue!;
-                                                    // Ovdje možete dodati logiku za slanje zahtjeva za otkazivanje rezervacije
+                                                    // Ovdje možet dodati logiku za slanje zahtjeva za otkazivanje rezervacije
                                                   });
                                                 },
                                                 child: Text('Da'),

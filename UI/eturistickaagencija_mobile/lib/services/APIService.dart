@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../model/destinacija.dart';
@@ -9,12 +10,11 @@ import '../model/ocjena.dart';
 import '../model/rezervacija.dart';
 import 'package:intl/intl.dart';
 
-
 class APIService {
   static String? username;
   static String? password;
   static int? korisnikId;
-  static const String baseRoute = "http://10.0.2.2:7073/";
+  static const String baseRoute = "http://192.168.10.189:5001/";
   String? route;
 
   APIService({this.route});
@@ -26,7 +26,6 @@ class APIService {
     final String basicAuth =
         // ignore: prefer_interpolation_to_compose_strings
         'Basic ' + base64Encode(utf8.encode('$username:$password'));
-        
 
     final response = await http.get(
       Uri.parse(baseUrl),
@@ -37,7 +36,7 @@ class APIService {
       if (responseData is List) {
         if (responseData.isNotEmpty) {
           for (var korisnikData in responseData) {
-            if (korisnikData['korisnikoIme'] == username  ) {
+            if (korisnikData['korisnikoIme'] == username) {
               return Korisnik.fromJson(korisnikData);
             }
           }
@@ -114,34 +113,35 @@ class APIService {
     }
     return null;
   }
-  static Future<List<dynamic>?> getPreporuceno(String route, dynamic object) async {
-  String queryString;
-  String baseUrl = baseRoute + route;
 
-  if (object != null) {
-    if (object is int) {
-      // ignore: prefer_interpolation_to_compose_strings
-      baseUrl = baseUrl + '/' + object.toString();
-    } else {
-      queryString = Uri(queryParameters: object).query;
-      // ignore: prefer_interpolation_to_compose_strings
-      baseUrl = baseUrl + '?' + queryString;
+  static Future<List<dynamic>?> getPreporuceno(
+      String route, dynamic object) async {
+    String queryString;
+    String baseUrl = baseRoute + route;
+
+    if (object != null) {
+      if (object is int) {
+        // ignore: prefer_interpolation_to_compose_strings
+        baseUrl = baseUrl + '/' + object.toString();
+      } else {
+        queryString = Uri(queryParameters: object).query;
+        // ignore: prefer_interpolation_to_compose_strings
+        baseUrl = baseUrl + '?' + queryString;
+      }
     }
-  }
 
-  final String basicAuth =
-      // ignore: prefer_interpolation_to_compose_strings
-      'Basic ' + base64Encode(utf8.encode('$username:$password'));
-  final response = await http.get(Uri.parse(baseUrl),
-      headers: {HttpHeaders.authorizationHeader: basicAuth});
-  // ignore: prefer_interpolation_to_compose_strings, avoid_print
-  print('Status code [GET] -> ' + response.statusCode.toString());
-  if (response.statusCode == 200) {
-    return json.decode(response.body) as List<dynamic>?; 
+    final String basicAuth =
+        // ignore: prefer_interpolation_to_compose_strings
+        'Basic ' + base64Encode(utf8.encode('$username:$password'));
+    final response = await http.get(Uri.parse(baseUrl),
+        headers: {HttpHeaders.authorizationHeader: basicAuth});
+    // ignore: prefer_interpolation_to_compose_strings, avoid_print
+    print('Status code [GET] -> ' + response.statusCode.toString());
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as List<dynamic>?;
+    }
+    return null;
   }
-  return null;
-}
-
 
   static Future<dynamic> post(String route, String body) async {
     String baseUrl = baseRoute + route;
@@ -193,72 +193,91 @@ class APIService {
       return null;
     }
   }
-  
-   static Future<bool> updateKorisnik(int id, Korisnik updatedKorisnik) async {
-  // ignore: prefer_interpolation_to_compose_strings
-  String baseUrl = baseRoute + "Korisnici/" + id.toString();
 
-  final String basicAuth =
-      // ignore: prefer_interpolation_to_compose_strings
-      'Basic ' + base64Encode(utf8.encode('$username:$password'));
+  static Future<bool> updateKorisnik(int id, Korisnik updatedKorisnik) async {
+    // ignore: prefer_interpolation_to_compose_strings
+    String baseUrl = baseRoute + "Korisnici/" + id.toString();
 
-  final response = await http.put(
-    Uri.parse(baseUrl),
-    headers: {
-      HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
-      HttpHeaders.authorizationHeader: basicAuth
-    },
-    body: json.encode(updatedKorisnik.toJson()),
-  );
+    final String basicAuth =
+        // ignore: prefer_interpolation_to_compose_strings
+        'Basic ' + base64Encode(utf8.encode('$username:$password'));
 
-  if (response.statusCode == 200) {
-    return true;
+    final response = await http.put(
+      Uri.parse(baseUrl),
+      headers: {
+        HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: basicAuth
+      },
+      body: json.encode(updatedKorisnik.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+
+    return false;
   }
 
-  return false;
-}
-
-static Future<List<Hotel>?> getHoteli() async {
-  final List<dynamic>? responseData = await get('Hoteli', null);
-  if (responseData != null) {
-    return responseData.map((data) => Hotel.fromJson(data)).toList();
+  static Future<List<Hotel>?> getHoteli() async {
+    final List<dynamic>? responseData = await get('Hoteli', null);
+    if (responseData != null) {
+      return responseData.map((data) => Hotel.fromJson(data)).toList();
+    }
+    return null;
   }
-  return null;
-}
-static Future<List<Ocjena>?> getOcjene() async {
-  final responseData = await get('Ocjene', null); 
-  if (responseData != null) {
-    List<Ocjena> ocjene = responseData.map((data) => Ocjena.fromJson(data)).toList();
-    return ocjene;
+
+  static Future<List<Ocjena>?> getOcjene() async {
+    final responseData = await get('Ocjene', null);
+    if (responseData != null) {
+      List<Ocjena> ocjene =
+          responseData.map((data) => Ocjena.fromJson(data)).toList();
+      return ocjene;
+    }
+    return null;
   }
-  return null;
-  
-}
-static Future<List<Rezervacije>?> getReservationsForUserAndDate(int userId, DateTime date) async {
-  final formattedDate = DateFormat('yyyy-MM-dd').format(date);
-  final queryParams = {
-    'korisnikId': userId.toString(),
-    'datumRezervacije': formattedDate,
-  };
-  final List<dynamic>? responseData = await get('Rezervacija', queryParams);
-  if (responseData != null) {
-    List<Rezervacije> rezervacije = responseData.map((data) => Rezervacije.fromJson(data)).toList();
-    return rezervacije;
+
+  static Future<List<Rezervacije>?> getReservationsForUserAndDate(
+      int userId, DateTime date) async {
+    final formattedDate = DateFormat('yyyy-MM-dd').format(date);
+    final queryParams = {
+      'korisnikId': userId.toString(),
+      'datumRezervacije': formattedDate,
+    };
+    final List<dynamic>? responseData = await get('Rezervacija', queryParams);
+    if (responseData != null) {
+      List<Rezervacije> rezervacije =
+          responseData.map((data) => Rezervacije.fromJson(data)).toList();
+      return rezervacije;
+    }
+    return null;
   }
-  return null;
-}
 
-
-
-
-
-static Future<Destinacija?> getDestinacija(int? destinacijaId) async {
-  final responseData = await GetById('Destinacije', destinacijaId!); 
-  if (responseData != null) {
-    return Destinacija.fromJson(responseData);
+  static Future<Destinacija?> getDestinacija(int? destinacijaId) async {
+    final responseData = await GetById('Destinacije', destinacijaId!);
+    if (responseData != null) {
+      return Destinacija.fromJson(responseData);
+    }
+    return null;
   }
-  return null;
-}
 
+  static Future<bool?> checkIfAlreadyRated(
+      int? userId, int? destinacijaId) async {
+    try {
+      final String basicAuth =
+          'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+      final response = await http.get(
+          Uri.parse(
+              "${baseRoute}Ocjene/check?userId=$userId&destinationId=$destinacijaId"),
+          headers: {HttpHeaders.authorizationHeader: basicAuth});
 
+      if (response.statusCode == 200) {
+        return bool.tryParse(response.body) ?? false;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking rating: $e');
+      }
+    }
+    return false;
+  }
 }
