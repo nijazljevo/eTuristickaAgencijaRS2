@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 
 namespace eTuristickaAgencija.Service
 {
-   
-       public interface IHotelService : ICRUDService<Hotel, HotelSearchObject, HotelInsertRequest, HotelUpdateRequest>
+    public interface IHotelService : ICRUDService<Hotel, HotelSearchObject, HotelInsertRequest, HotelUpdateRequest>
     {
-
     }
 }

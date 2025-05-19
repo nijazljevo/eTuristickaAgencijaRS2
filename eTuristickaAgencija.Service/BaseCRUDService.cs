@@ -28,11 +28,23 @@ namespace eTuristickaAgencija.Service
             return Mapper.Map<T>(entity);
         }
 
-        public virtual void BeforeInsert(TInsert insert, TDb entity)
+        public virtual async Task<T> InsertAsync(TInsert insert)
         {
-
+            var set = Context.Set<TDb>();
+            TDb entity = Mapper.Map<TDb>(insert);
+            await set.AddAsync(entity);
+            await BeforeInsertAsync(insert, entity);
+            await Context.SaveChangesAsync();
+            return Mapper.Map<T>(entity);
         }
 
+        public virtual void BeforeInsert(TInsert insert, TDb entity)
+        {
+        }
+
+        public virtual async Task BeforeInsertAsync(TInsert insert, TDb entity)
+        {
+        }
 
         public virtual T Update(int id, TUpdate update)
         {
@@ -49,25 +61,23 @@ namespace eTuristickaAgencija.Service
             Context.SaveChanges();
             return Mapper.Map<T>(entity);
         }
-       public virtual T Delete(int id)
-{
-    var set = Context.Set<TDb>();
-    var entity = set.Find(id);
-    if (entity != null)
-    {
-        var tmp = entity;
-        Context.Remove(entity);
-        int result = Context.SaveChanges(); // Dodajte ovaj red za proveru rezultata brisanja
-        Console.WriteLine($"Delete result: {result}"); // Dodajte ovaj red za proveru rezultata brisanja
-        return Mapper.Map<T>(tmp);
-    }
-    else
-    {
-        return null;
-    }
-}
 
-        
-     
+        public virtual T Delete(int id)
+        {
+            var set = Context.Set<TDb>();
+            var entity = set.Find(id);
+            if (entity != null)
+            {
+                var tmp = entity;
+                Context.Remove(entity);
+                int result = Context.SaveChanges(); // Dodajte ovaj red za proveru rezultata brisanja
+                Console.WriteLine($"Delete result: {result}"); // Dodajte ovaj red za proveru rezultata brisanja
+                return Mapper.Map<T>(tmp);
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ using eTuristickaAgencija.Models;
 using eTuristickaAgencija.Models.Request;
 using eTuristickaAgencija.Models.Search_Objects;
 using eTuristickaAgencija.Service.Database;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,8 +36,8 @@ namespace eTuristickaAgencija.Service
 
         public async Task<bool> HasUserRatedAsync(int userId, int destinationId)
         {
-            return _context.Ocjenas
-                .Any(x => x.KorisnikId == userId && x.DestinacijaId == destinationId);
+            return await _context.Ocjenas
+                .AnyAsync(x => x.KorisnikId == userId && x.DestinacijaId == destinationId);
         }
     }
 }

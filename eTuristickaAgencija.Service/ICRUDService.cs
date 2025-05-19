@@ -9,7 +9,11 @@ namespace eTuristickaAgencija.Service
     public interface ICRUDService<T, TSearch, TInsert, TUpdate> : IService<T, TSearch> where TSearch : class
     {
         T Insert(TInsert insert);
+
+        Task<T> InsertAsync(TInsert insert);
+
         T Update(int id, TUpdate update);
-        T Delete (int id);
+
+        T Delete(int id);
     }
 }
