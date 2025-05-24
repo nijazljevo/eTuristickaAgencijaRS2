@@ -9,30 +9,39 @@ namespace eTuristickaAgencija.Service
       : BaseCRUDService<Models.Hotel, Hotel, HotelSearchObject, HotelInsertRequest, HotelUpdateRequest>, IHotelService
     {
         private readonly TuristickaAgencijaContext _context;
+        private readonly IMapper _mapper;
 
         public HoteliService(TuristickaAgencijaContext eContext, IMapper mapper) : base(eContext, mapper)
         {
             _context = eContext;
+            _mapper = mapper;
         }
 
         public override async Task<Models.Hotel> InsertAsync(HotelInsertRequest insert)
         {
-            using var memoryStream = new MemoryStream();
-            await insert.Slika.CopyToAsync(memoryStream);
-
-            Models.Hotel hotel = new()
+            try
             {
-                Naziv = insert.Naziv,
-                GradId = insert.GradId,
-                Slika = memoryStream.ToArray(),
-                BrojZvjezdica = insert.BrojZvjezdica
-            };
+                using var memoryStream = new MemoryStream();
+                await insert.Slika.CopyToAsync(memoryStream);
 
-            await _context.AddAsync(hotel);
+                Hotel hotel = new()
+                {
+                    Naziv = insert.Naziv,
+                    GradId = insert.GradId,
+                    Slika = memoryStream.ToArray(),
+                    BrojZvjezdica = insert.BrojZvjezdica
+                };
 
-            await _context.SaveChangesAsync();
+                await _context.AddAsync(hotel);
+                await _context.SaveChangesAsync();
 
-            return hotel;
+                return _mapper.Map<Models.Hotel>(hotel);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it appropriately
+                throw new Exception($"Error inserting hotel: {ex.Message}", ex);
+            }
         }
 
         public override IQueryable<Hotel> AddFilter(IQueryable<Hotel> query, HotelSearchObject search = null)
