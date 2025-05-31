@@ -55,11 +55,15 @@ namespace eTuristickaAgencija.Service
 
             if (!string.IsNullOrEmpty(search?.Naziv))
             {
-                filteredQuery = filteredQuery.Where(x => x.Naziv == search.Naziv);
+                filteredQuery = filteredQuery.Where(x => x.Naziv.Contains(search.Naziv));
             }
             if (search?.GradId != 0)
             {
                 filteredQuery = filteredQuery.Where(x => x.GradId == search.GradId);
+            }
+            if (search?.BrojZvjezdica != 0)
+            {
+                filteredQuery = filteredQuery.Where(x => x.BrojZvjezdica == search.BrojZvjezdica);
             }
 
             return filteredQuery;
