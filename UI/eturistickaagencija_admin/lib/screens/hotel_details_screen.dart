@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +32,9 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
   Set<String> _existingNames = {};
   SearchResult<Grad>? gradResult;
   bool isLoading = true;
-  File? _image;
+  Uint8List? _imageBytes;
+  String? _imageName;
   String? _base64Image;
-  
 
   @override
   void initState() {
@@ -51,10 +52,8 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
   }
 
   Future<void> initForm() async {
-   
-      gradResult = await _gradProvider.get();
-      print(gradResult);
-    
+    gradResult = await _gradProvider.get();
+    print(gradResult);
 
     setState(() {
       isLoading = false;
@@ -79,39 +78,41 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
       ),
     );
   }
-void _showDeleteConfirmationDialog(BuildContext context) async {
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Potvrdite brisanje"),
-      content: const Text("Jeste li sigurni da želite obrisati ovaj kontinent?"),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
-        ),
-        TextButton(
-          onPressed: () async {
-            Navigator.of(context).pop();
-            try {
-              await _hotelProvider.deleteHotel(widget.hotel!.id!);
-              // ignore: use_build_context_synchronously
+
+  void _showDeleteConfirmationDialog(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Potvrdite brisanje"),
+        content:
+            const Text("Jeste li sigurni da želite obrisati ovaj kontinent?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
               Navigator.of(context).pop();
-              // ignore: use_build_context_synchronously
-              _showSuccessDialog(context, 'Zapis uspješno obrisan.');
-            } on Exception catch (e) {
-              // ignore: avoid_print
-              print("Delete error: $e"); // Dodajte ispis u konzolu
-              // ignore: use_build_context_synchronously
-              _showErrorDialog(context, 'Greška prilikom brisanja: $e');
-            }
-          },
-          child: const Text("OK"),
-        ),
-      ],
-    ),
-  );
-}
+              try {
+                await _hotelProvider.deleteHotel(widget.hotel!.id!);
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+                // ignore: use_build_context_synchronously
+                _showSuccessDialog(context, 'Zapis uspješno obrisan.');
+              } on Exception catch (e) {
+                // ignore: avoid_print
+                print("Delete error: $e"); // Dodajte ispis u konzolu
+                // ignore: use_build_context_synchronously
+                _showErrorDialog(context, 'Greška prilikom brisanja: $e');
+              }
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
@@ -130,80 +131,117 @@ void _showDeleteConfirmationDialog(BuildContext context) async {
   }
 
   @override
- Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(
-        widget.hotel?.naziv ?? 'Hotel',
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.hotel?.naziv ?? 'Hotel',
+          style: const TextStyle(
+              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
-    ),
-    body: MasterScreenWidget(
-      child: Column(
-        children: [
-          isLoading ? Container() : _buildForm(),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState?.saveAndValidate() ?? false) {
-                      Map<String, dynamic> request =
-                          Map<String, dynamic>.from(_formKey.currentState!.value);
+      body: MasterScreenWidget(
+        child: Column(
+          children: [
+            isLoading ? Container() : _buildForm(),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState?.saveAndValidate() ?? false) {
+                        Map<String, dynamic> request =
+                            Map<String, dynamic>.from(
+                                _formKey.currentState!.value);
 
-                      if (_base64Image != null) {
-                        request['slika'] = _base64Image;
-                      }
-
-                      try {
-                        final naziv = _formKey.currentState?.value['naziv'] as String;
-                        if (widget.hotel == null || widget.hotel!.naziv != naziv) {
-                          final isDuplicate = await _hotelProvider.checkDuplicate(naziv);
-                          if (isDuplicate) {
-                            // ignore: use_build_context_synchronously
-                            _showErrorDialog(context, 'Zapis već postoji.');
-                            return;
+                        try {
+                          final naziv = request['naziv'] as String;
+                          if (widget.hotel == null ||
+                              widget.hotel!.naziv != naziv) {
+                            final isDuplicate =
+                                await _hotelProvider.checkDuplicate(naziv);
+                            if (isDuplicate) {
+                              _showErrorDialog(context, 'Zapis već postoji.');
+                              return;
+                            }
                           }
+
+                          // Prepare fields for multipart
+                          Map<String, String> fields = {
+                            'Naziv': request['naziv'] ?? '',
+                            'BrojZvjezdica': request['brojZvjezdica'] ?? '',
+                            'GradId': request['gradId'] ?? '',
+                          };
+
+                          Map<String, Uint8List>? fileBytes;
+                          Map<String, String>? fileNames;
+                          if (_imageBytes != null) {
+                            fileBytes = {'Slika': _imageBytes!};
+                            // If you want to keep the original file name, you can store it when picking the file
+                            // For now, we'll use a default name
+                            fileNames = {'Slika': _imageName!};
+                          }
+
+                          if (widget.hotel == null) {
+                            await _hotelProvider.insertMultipart(
+                              fields: fields,
+                              fileBytes: fileBytes,
+                              fileNames: fileNames,
+                            );
+                            _showSuccessDialog(
+                                context, 'Zapis uspješno dodan.');
+                          } else {
+                            // For update, you may want to implement updateMultipart in your provider
+                            await _hotelProvider.update(
+                                widget.hotel!.id!, request);
+                            _showSuccessDialog(
+                                context, 'Zapis uspješno ažuriran.');
+                          }
+                        } on FormatException catch (_) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: const Text("Greška"),
+                              content: const Text(
+                                  "Neispravan format podataka slike."),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("OK"),
+                                )
+                              ],
+                            ),
+                          );
+                        } on Exception catch (e) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: const Text("Greška"),
+                              content: Text(e.toString()),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("OK"),
+                                )
+                              ],
+                            ),
+                          );
                         }
-                        if (widget.hotel == null) {
-                          await _hotelProvider.insert(request);
-                          // ignore: use_build_context_synchronously
-                          _showSuccessDialog(context, 'Zapis uspješno dodan.');
-                        } else {
-                          await _hotelProvider.update(widget.hotel!.id!, request);
-                          // ignore: use_build_context_synchronously
-                          _showSuccessDialog(context, 'Zapis uspješno ažuriran.');
-                        }
-                      } on FormatException catch (e) {
+                      } else {
                         showDialog(
-                          // ignore: use_build_context_synchronously
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                            title: const Text("Greška"),
-                            content: const Text("Neispravan format podataka slike."),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("OK"),
-                              )
-                            ],
-                          ),
-                        );
-                      } on Exception catch (e) {
-                        showDialog(
-                          // ignore: use_build_context_synchronously
-                          context: context,
-                          builder: (BuildContext context) => AlertDialog(
-                            title: const Text("Greška"),
-                            content: Text(e.toString()),
+                            title: const Text("Greška pri validaciji"),
+                            content: const Text(
+                                "Molimo vas da popunite sva obavezna polja."),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
@@ -213,149 +251,139 @@ void _showDeleteConfirmationDialog(BuildContext context) async {
                           ),
                         );
                       }
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) => AlertDialog(
-                          title: const Text("Greška pri validaciji"),
-                          content: const Text("Molimo vas da popunite sva obavezna polja."),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("OK"),
-                            )
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0), 
-                    child: Text(
-                      "Sačuvaj",
-                      style: TextStyle(fontSize: 16.0), 
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 12.0, horizontal: 24.0),
+                      child: Text(
+                        "Sačuvaj",
+                        style: TextStyle(fontSize: 16.0),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: ElevatedButton(
-              onPressed: () {
-                _showDeleteConfirmationDialog(context);
-              },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 5),
-                    Text(
-                      "Obriši",
-                      style: TextStyle(fontSize: 16.0, color: Colors.red),
-                    ),
-                  ],
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ElevatedButton(
+                onPressed: () {
+                  _showDeleteConfirmationDialog(context);
+                },
+                child: const Padding(
+                  padding:
+                      EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.delete, color: Colors.red),
+                      SizedBox(width: 5),
+                      Text(
+                        "Obriši",
+                        style: TextStyle(fontSize: 16.0, color: Colors.red),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-  
+    );
+  }
 
   FormBuilder _buildForm() {
-  return FormBuilder(
-    key: _formKey,
-    initialValue: _initialValue,
-    child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-         const SizedBox(height: 10,),
-        Padding(padding: const EdgeInsets.only(left: 10),
-        child:SizedBox(
+    return FormBuilder(
+      key: _formKey,
+      initialValue: _initialValue,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
               width: 550,
               child: FormBuilderTextField(
-               decoration: InputDecoration(
-                
-  labelText: "Naziv",
-  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-  errorText: _formKey.currentState?.fields['naziv']?.errorText,
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(7.0),
-  ),
-  filled: true,
-  fillColor: Colors.grey[200],
-  hintText: "Unesite naziv",
-),
-
+                decoration: InputDecoration(
+                  labelText: "Naziv",
+                  labelStyle: const TextStyle(
+                      fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText: _formKey.currentState?.fields['naziv']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite naziv",
+                ),
                 name: "naziv",
                 validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  return null;
-},
-
+                  if (value == null || value.isEmpty) {
+                    return "Polje je obavezno.";
+                  }
+                  return null;
+                },
               ),
             ),
-        ),
-        const SizedBox(height: 10,),     
-        Padding(padding: const EdgeInsets.only(left: 10),
-              child: SizedBox(
-                width: 550,
-                 child: FormBuilderTextField(
-                    decoration: InputDecoration(
-                    labelText: "Broj zvjezdica",
-                     labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                     errorText: _formKey.currentState?.fields['brojZvjezdica']?.errorText,
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(7.0),
-  ),
-  filled: true,
-  fillColor: Colors.grey[200],
-  hintText: "Unesite broj zvjezdica",
-                    ),
-                    
-                    name: "brojZvjezdica",
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Polje je obavezno.";
-                      }
-                      int? intValue = int.tryParse(value);
-                      if (intValue == null || !isValidStarRating(intValue)) {
-                        return "Unesite validan broj zvjezdica (1, 2, 3, 4 ili 5).";
-                      }
-                      return null;
-                    },
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
+              width: 550,
+              child: FormBuilderTextField(
+                decoration: InputDecoration(
+                  labelText: "Broj zvjezdica",
+                  labelStyle: const TextStyle(
+                      fontSize: 16.0, fontWeight: FontWeight.bold),
+                  errorText:
+                      _formKey.currentState?.fields['brojZvjezdica']?.errorText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7.0),
                   ),
-                  
-                 
-                
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  hintText: "Unesite broj zvjezdica",
+                ),
+                name: "brojZvjezdica",
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Polje je obavezno.";
+                  }
+                  int? intValue = int.tryParse(value);
+                  if (intValue == null || !isValidStarRating(intValue)) {
+                    return "Unesite validan broj zvjezdica (1, 2, 3, 4 ili 5).";
+                  }
+                  return null;
+                },
               ),
             ),
-          const SizedBox(height: 10,),
-        
-       Padding(padding: const EdgeInsets.only(left: 10),
-        child:SizedBox(
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
               width: 550,
               child: FormBuilderDropdown<String>(
                 name: 'gradId',
                 decoration: InputDecoration(
                   labelText: 'Grad',
-                  labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  labelStyle: const TextStyle(
+                      fontSize: 16.0, fontWeight: FontWeight.bold),
                   errorText: _formKey.currentState?.fields['gradId']?.errorText,
                   border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(7.0),
-  ),
-  filled: true,
-  fillColor: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
                   suffix: IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () {
@@ -373,20 +401,20 @@ void _showDeleteConfirmationDialog(BuildContext context) async {
                         .toList() ??
                     [],
                 validator: (value) {
-  if (value == null || value.isEmpty) {
-    return "Polje je obavezno.";
-  }
-  return null;
-},
-
+                  if (value == null || value.isEmpty) {
+                    return "Polje je obavezno.";
+                  }
+                  return null;
+                },
               ),
             ),
-           
-          
-        ),
-        const SizedBox(height: 10,),
-         Padding(padding: const EdgeInsets.only(left: 10),
-        child:SizedBox(
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: SizedBox(
               width: 550,
               child: FormBuilderField(
                 name: 'slika',
@@ -394,51 +422,61 @@ void _showDeleteConfirmationDialog(BuildContext context) async {
                   return InputDecorator(
                     decoration: InputDecoration(
                       label: const Text('Odaberite sliku'),
-                      labelStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      labelStyle: const TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                       errorText: field.errorText,
                       border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(7.0),
-  ),
-  filled: true,
-  fillColor: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(7.0),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
                     ),
-                    child: ListTile(
-                      leading: const Icon(Icons.photo),
-                      title: const Text("Select image"),
-                      trailing: const Icon(Icons.file_upload),
-                      onTap: getImage,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.photo),
+                          title: _imageBytes != null
+                              ? const Text("Slika je odabrana")
+                              : const Text("Nijedna slika nije odabrana"),
+                          trailing: const Icon(Icons.file_upload),
+                          onTap: () async {
+                            var result = await FilePicker.platform.pickFiles(
+                                withData: true, type: FileType.image);
+                            if (result != null && result.files.isNotEmpty) {
+                              var fileBytes = result.files.single.bytes;
+                              if (fileBytes != null) {
+                                setState(() {
+                                  _imageBytes = fileBytes;
+                                  _imageName = result.files.single.name;
+                                  _base64Image = base64Encode(fileBytes);
+                                });
+                                field.didChange(
+                                    fileBytes); // update form field value
+                              }
+                            }
+                          },
+                        ),
+                        if (_imageBytes != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Image.memory(
+                              _imageBytes!,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                      ],
                     ),
                   );
                 },
                 initialValue: _initialValue['slika'],
               ),
             ),
-          
-        ),
-      ],
-    ),
-  );
-}
-
-
-  Future<void> getImage() async {
-    try {
-      var result = await FilePicker.platform.pickFiles(type: FileType.image);
-
-      if (result != null && result.files.isNotEmpty) {
-        var filePath = result.files.single.path;
-        if (filePath != null) {
-          _image = File(filePath);
-          _base64Image = base64Encode(_image!.readAsBytesSync());
-        }
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('Error picking image: $e');
-    }
-
-    // ignore: avoid_print
-    print('Image selected successfully.');
+          ),
+        ],
+      ),
+    );
   }
 
   bool isValidStarRating(int value) {

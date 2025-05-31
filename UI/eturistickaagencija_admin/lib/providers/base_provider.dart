@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:eturistickaagencija_admin/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,22 +7,16 @@ import 'package:http/http.dart';
 import '../models/search_result.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
-abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
   String _endpoint = "";
   BaseProvider(String endpoint) {
     _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment("baseUrl",
-        defaultValue: "http://192.168.1.5:5001/");
+        defaultValue: "http://192.168.1.7:5001/");
   }
   Future<SearchResult<T>> get({dynamic filter}) async {
     var url = "$_baseUrl$_endpoint";
-  Future<SearchResult<T>> get({dynamic filter}) async {
-    var url = "$_baseUrl$_endpoint";
 
-    if (filter != null) {
-      var queryString = getQueryString(filter);
-      url = "$url?$queryString";
     if (filter != null) {
       var queryString = getQueryString(filter);
       url = "$url?$queryString";
@@ -29,26 +24,15 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     var uri = Uri.parse(url);
     var headers = createHeaders();
-    var uri = Uri.parse(url);
-    var headers = createHeaders();
 
-    var response = await http.get(uri, headers: headers);
-    var response = await http.get(uri, headers: headers);
-
-    print(
-        "response: ${response.request} ${response.statusCode} ${response.body}");
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      var result = SearchResult<T>();
-      // result.count=data['count'];
-      for (var item in data) {
-        result.result.add(fromJson(item));
-      }
-      return result;
-    } else {
-      // ignore: unnecessary_new
-      throw new Exception("Unknown error");
+    try {
+      print("url: $url");
+      print("headers: $headers");
+      var response = await http.get(uri, headers: headers);
+    } catch (e) {
+      print("Error printing URL or headers: $e");
     }
+    var response = await http.get(uri, headers: headers);
     print(
         "response: ${response.request} ${response.statusCode} ${response.body}");
     if (isValidResponse(response)) {
@@ -70,17 +54,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
     var uri = Uri.parse(url);
     var headers = createHeaders();
 
-  Future<T> insert(dynamic request) async {
-    var url = "$_baseUrl$_endpoint";
-    var uri = Uri.parse(url);
-    var headers = createHeaders();
-
-    // Dodajte provjeru je li request null prije slanja
-    var jsonRequest = request != null ? jsonEncode(request) : null;
     // Dodajte provjeru je li request null prije slanja
     var jsonRequest = request != null ? jsonEncode(request) : null;
 
-    var response = await http.post(uri, headers: headers, body: jsonRequest);
     var response = await http.post(uri, headers: headers, body: jsonRequest);
 
     if (isValidResponse(response)) {
@@ -92,20 +68,54 @@ abstract class BaseProvider<T> with ChangeNotifier {
     }
   }
 
-  Future<T> update(int id, [dynamic request]) async {
-    var url = "$_baseUrl$_endpoint/$id";
+  Future<T> insertMultipart({
+    required Map<String, String> fields,
+    Map<String, Uint8List>? fileBytes, // key: field name, value: file bytes
+    Map<String, String>? fileNames, // key: field name, value: file name
+  }) async {
+    var url = "$_baseUrl$_endpoint/form";
     var uri = Uri.parse(url);
-    var headers = createHeaders();
 
-    var jsonRequest = jsonEncode(request);
-    var response = await http.put(uri, headers: headers, body: jsonRequest);
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
-    } else {
-      // ignore: unnecessary_new
-      throw Exception("Unknown error");
+    var request = http.MultipartRequest('POST', uri);
+
+    // Add headers except Content-Type (it will be set automatically)
+    var headers = createHeaders();
+    headers.remove("Content-Type");
+    request.headers.addAll(headers);
+
+    // Add fields
+    fields.forEach((key, value) {
+      request.fields[key] = value;
+    });
+
+    // Add files from bytes
+    if (fileBytes != null) {
+      for (var entry in fileBytes.entries) {
+        final fileName =
+            fileNames != null ? fileNames[entry.key] ?? 'file.jpg' : 'file.jpg';
+
+        final httpImage = http.MultipartFile.fromBytes(
+          entry.key, // <-- use the actual field name
+          entry.value,
+          filename: fileName,
+        );
+        request.files.add(httpImage);
+      }
     }
+
+    try {
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (isValidResponse(response)) {
+        var data = jsonDecode(response.body);
+        return fromJson(data);
+      }
+    } catch (e) {
+      print("Error in multipart request: $e");
+      throw Exception("Error in multipart request: $e");
+    }
+    throw Exception("Unknown error in insertMultipart");
   }
 
   Future<T> update(int id, [dynamic request]) async {
@@ -123,13 +133,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
       // ignore: unnecessary_new
       throw new Exception("Unknown error");
     }
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
-    } else {
-      // ignore: unnecessary_new
-      throw new Exception("Unknown error");
-    }
   }
 
   Future<void> delete(int id) async {
@@ -137,12 +140,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
     var uri = Uri.parse(url);
     var headers = createHeaders();
 
-  Future<void> delete(int id) async {
-    var url = "$_baseUrl$_endpoint/$id";
-    var uri = Uri.parse(url);
-    var headers = createHeaders();
-
-    var response = await http.delete(uri, headers: headers);
     var response = await http.delete(uri, headers: headers);
 
     if (isValidResponse(response)) {
@@ -151,14 +148,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
       throw Exception("Unknown error");
     }
   }
-    if (isValidResponse(response)) {
-    } else {
-      // ignore: unnecessary_new
-      throw Exception("Unknown error");
-    }
-  }
 
-  T fromJson(data) {
   T fromJson(data) {
     throw Exception("Method not implemented");
   }
@@ -168,22 +158,10 @@ abstract class BaseProvider<T> with ChangeNotifier {
       return true;
     } else if (response.statusCode == 401) {
       throw Exception("Unauthorized");
-
-  bool isValidResponse(Response response) {
-    if (response.statusCode < 299) {
-      return true;
-    } else if (response.statusCode == 401) {
-      throw Exception("Unauthorized");
-    } else {
-      throw Exception("Something bad happened please try again");
-      throw Exception("Something bad happened please try again");
     }
-  }
+    return false;
   }
 
-  Map<String, String> createHeaders() {
-    String username = Authorization.username ?? "";
-    String password = Authorization.password ?? "";
   Map<String, String> createHeaders() {
     String username = Authorization.username ?? "";
     String password = Authorization.password ?? "";
@@ -192,19 +170,13 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     String baseAuth =
         "Basic ${base64Encode(utf8.encode('$username:$password'))}";
-    String baseAuth =
-        "Basic ${base64Encode(utf8.encode('$username:$password'))}";
 
-    var headers = {
-      "Content-Type": "application/json",
-      "Authorization": baseAuth
     var headers = {
       "Content-Type": "application/json",
       "Authorization": baseAuth
     };
     return headers;
   }
-
 
   String getQueryString(Map params,
       {String prefix: '&', bool inRecursion: false}) {
@@ -238,4 +210,3 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return query;
   }
 }
-
