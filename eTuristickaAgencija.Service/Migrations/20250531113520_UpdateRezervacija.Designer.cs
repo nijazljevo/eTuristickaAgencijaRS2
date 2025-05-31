@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eTuristickaAgencija.Service.Database;
 
@@ -11,9 +12,11 @@ using eTuristickaAgencija.Service.Database;
 namespace eTuristickaAgencija.Service.Migrations
 {
     [DbContext(typeof(TuristickaAgencijaContext))]
-    partial class TuristickaAgencijaContextModelSnapshot : ModelSnapshot
+    [Migration("20250531113520_UpdateRezervacija")]
+    partial class UpdateRezervacija
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
