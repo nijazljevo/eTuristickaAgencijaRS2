@@ -31,6 +31,13 @@ namespace eTuriatickaAgencija.Controllers
             return results;
         }
 
+        [HttpPut("form")]
+        public virtual async Task<T> UpdateFromFormAsync([FromForm] TUpdate update)
+        {
+            var results = await ((ICRUDService<T, TSearch, TInsert, TUpdate>)this.Service).UpdateAsync(update);
+            return results;
+        }
+
         [HttpPut("{id}")]
         public virtual T Update(int id, [FromBody] TUpdate update)
         {

@@ -12,7 +12,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   BaseProvider(String endpoint) {
     _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment("baseUrl",
-        defaultValue: "http://192.168.1.7:5001/");
+        defaultValue: "http://localhost:5000/");
   }
   Future<SearchResult<T>> get({dynamic filter}) async {
     var url = "$_baseUrl$_endpoint";
@@ -116,6 +116,56 @@ abstract class BaseProvider<T> with ChangeNotifier {
       throw Exception("Error in multipart request: $e");
     }
     throw Exception("Unknown error in insertMultipart");
+  }
+
+  Future<T> updateMultipart({
+    required Map<String, String> fields,
+    Map<String, Uint8List>? fileBytes, // key: field name, value: file bytes
+    Map<String, String>? fileNames, // key: field name, value: file name
+  }) async {
+    var url = "$_baseUrl$_endpoint/form";
+    var uri = Uri.parse(url);
+
+    var request = http.MultipartRequest('PUT', uri);
+
+    // Add headers except Content-Type (it will be set automatically)
+    var headers = createHeaders();
+    headers.remove("Content-Type");
+    request.headers.addAll(headers);
+
+    // Add fields
+    fields.forEach((key, value) {
+      request.fields[key] = value;
+    });
+
+    // Add files from bytes
+    if (fileBytes != null) {
+      for (var entry in fileBytes.entries) {
+        final fileName =
+            fileNames != null ? fileNames[entry.key] ?? 'file.jpg' : 'file.jpg';
+
+        final httpImage = http.MultipartFile.fromBytes(
+          entry.key, // <-- use the actual field name
+          entry.value,
+          filename: fileName,
+        );
+        request.files.add(httpImage);
+      }
+    }
+
+    try {
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (isValidResponse(response)) {
+        var data = jsonDecode(response.body);
+        return fromJson(data);
+      }
+    } catch (e) {
+      print("Error in multipart request: $e");
+      throw Exception("Error in multipart request: $e");
+    }
+    throw Exception("Unknown error in updateMultipart");
   }
 
   Future<T> update(int id, [dynamic request]) async {

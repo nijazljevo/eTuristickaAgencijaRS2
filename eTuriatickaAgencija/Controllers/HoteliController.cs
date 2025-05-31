@@ -25,5 +25,10 @@ namespace eTuriatickaAgencija.Controllers
         {
             return base.InsertFromFormAsync(insert);
         }
+
+        public override Task<Hotel> UpdateFromFormAsync([FromForm] HotelUpdateRequest update)
+        {
+            return base.UpdateFromFormAsync(update);
+        }
     }
 }
