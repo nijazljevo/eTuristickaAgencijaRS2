@@ -15,8 +15,9 @@ namespace eTuriatickaAgencija.Controllers
     {
         private readonly IRezervacijaService _rezervacijaService;
         private readonly IRabbitMQProducer _rabbitMQProducer;
+
         public RezervacijaController(ILogger<BaseController<Rezervacija, RezervacijaSearchObject>> logger,
-            IRezervacijaService rezervacijaService, IRabbitMQProducer rabitMQProducer) : base(logger,rezervacijaService)
+            IRezervacijaService rezervacijaService, IRabbitMQProducer rabitMQProducer) : base(logger, rezervacijaService)
         {
             _rezervacijaService = rezervacijaService;
             _rabbitMQProducer = rabitMQProducer;
@@ -28,26 +29,35 @@ namespace eTuriatickaAgencija.Controllers
         {
             return base.Insert(rezervacijaInsertRequest);
         }
+
         [AllowAnonymous]
-        public override eTuristickaAgencija.Models.Rezervacija Update(int id,[FromBody] RezervacijaUpdateRequest rezervacijaUpdateRequest)
+        public override eTuristickaAgencija.Models.Rezervacija Update(int id, [FromBody] RezervacijaUpdateRequest rezervacijaUpdateRequest)
         {
-            return base.Update(id,rezervacijaUpdateRequest);
+            return base.Update(id, rezervacijaUpdateRequest);
         }
-       public class EmailModel
+
+        [HttpPost("SendConfirmationEmail")]
+        public IActionResult SendConfirmationEmail([FromBody] EmailModel emailModel)
+        {
+            _rabbitMQProducer.SendMessage(emailModel);
+            Thread.Sleep(TimeSpan.FromSeconds(15));
+            return Ok();
+        }
+
+
+        [HttpPut("otkazi")]
+        public async Task<IActionResult> Otkazi([FromQuery] int rezervacijaId)
+        {
+            var otkazana = await _rezervacijaService.CancelReservation(rezervacijaId);
+            return Ok(otkazana);
+        }
+
+        public class EmailModel
         {
             public string Sender { get; set; }
             public string Recipient { get; set; }
             public string Subject { get; set; }
             public string Content { get; set; }
         }
-       [HttpPost("SendConfirmationEmail")]
-       public IActionResult SendConfirmationEmail([FromBody] EmailModel emailModel)
-      {
-            _rabbitMQProducer.SendMessage(emailModel);
-            Thread.Sleep(TimeSpan.FromSeconds(15));
-            return Ok();
-      }
-
-
     }
 }

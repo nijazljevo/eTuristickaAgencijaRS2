@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace eTuristickaAgencija.Service
 {
-       public interface IRezervacijaService : ICRUDService<Rezervacija, RezervacijaSearchObject, RezervacijaInsertRequest, RezervacijaUpdateRequest>
+    public interface IRezervacijaService : ICRUDService<Rezervacija, RezervacijaSearchObject, RezervacijaInsertRequest, RezervacijaUpdateRequest>
     {
-       
+        Task<bool> CancelReservation(int rezervacijaId);
     }
 }

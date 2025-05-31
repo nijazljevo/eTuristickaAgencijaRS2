@@ -14,9 +14,11 @@ namespace eTuristickaAgencija.Service
     public class RezervacijaService
        : BaseCRUDService<Models.Rezervacija, Database.Rezervacija, RezervacijaSearchObject, RezervacijaInsertRequest, RezervacijaUpdateRequest>, IRezervacijaService
     {
+        private readonly TuristickaAgencijaContext _context;
 
         public RezervacijaService(TuristickaAgencijaContext eContext, IMapper mapper) : base(eContext, mapper)
         {
+            _context = eContext;
         }
 
         public override IQueryable<Database.Rezervacija> AddFilter(IQueryable<Database.Rezervacija> query, RezervacijaSearchObject search=null)
@@ -39,6 +41,24 @@ namespace eTuristickaAgencija.Service
             }
 
             return filteredQuery;
+        }
+
+        public async Task<bool> CancelReservation(int rezervacijaId)
+        {
+            var rezervacija = await _context.FindAsync<Database.Rezervacija>(rezervacijaId);
+            if (rezervacija == null)
+            {
+                throw new Exception("Rezervacija not found");
+            }
+
+            if (rezervacija.CheckIn.Subtract(DateTime.Now).Days > 7)
+                rezervacija.Otkazana = true;
+            else
+                return false;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }
