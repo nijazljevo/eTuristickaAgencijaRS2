@@ -43,6 +43,7 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
       'naziv': widget.hotel?.naziv,
       'brojZvjezdica': widget.hotel?.brojZvjezdica?.toString(),
       'gradId': widget.hotel?.gradId?.toString(),
+      'slika': widget.hotel?.slika ?? ''
     };
 
     _gradProvider = context.read<GradProvider>();
@@ -199,9 +200,14 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
                             _showSuccessDialog(
                                 context, 'Zapis uspješno dodan.');
                           } else {
-                            // For update, you may want to implement updateMultipart in your provider
-                            await _hotelProvider.update(
-                                widget.hotel!.id!, request);
+                            fields.addEntries({
+                              "Id": "${widget.hotel!.id!}",
+                            }.entries);
+                            await _hotelProvider.updateMultipart(
+                              fields: fields,
+                              fileBytes: fileBytes,
+                              fileNames: fileNames,
+                            );
                             _showSuccessDialog(
                                 context, 'Zapis uspješno ažuriran.');
                           }
@@ -462,6 +468,16 @@ class _HotelDetailsScreenState extends State<HotelDetailsScreen> {
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Image.memory(
                               _imageBytes!,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        if ((_imageBytes == null &&
+                            _initialValue['slika'].isNotEmpty))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Image.memory(
+                              base64Decode(_initialValue['slika']),
                               height: 120,
                               fit: BoxFit.cover,
                             ),

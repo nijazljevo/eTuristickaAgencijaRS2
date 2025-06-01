@@ -22,13 +22,14 @@ namespace eTuristickaAgencija.Service
             try
             {
                 using var memoryStream = new MemoryStream();
-                await insert.Slika.CopyToAsync(memoryStream);
+                if (insert.Slika != null)
+                    await insert.Slika.CopyToAsync(memoryStream);
 
                 Hotel hotel = new()
                 {
                     Naziv = insert.Naziv,
                     GradId = insert.GradId,
-                    Slika = memoryStream.ToArray(),
+                    Slika = insert.Slika != null ? memoryStream.ToArray() : null,
                     BrojZvjezdica = insert.BrojZvjezdica
                 };
 
@@ -41,6 +42,37 @@ namespace eTuristickaAgencija.Service
             {
                 // Log the exception or handle it appropriately
                 throw new Exception($"Error inserting hotel: {ex.Message}", ex);
+            }
+        }
+
+        public override async Task<Models.Hotel> UpdateAsync(HotelUpdateRequest update)
+        {
+            try
+            {
+                var hotel = await _context.Hotels.FindAsync(update.Id);
+                if (hotel == null)
+                {
+                    throw new Exception("Hotel not found");
+                }
+
+                using var memoryStream = new MemoryStream();
+
+                if (update.Slika != null)
+                    await update.Slika.CopyToAsync(memoryStream);
+
+                hotel.Naziv = update.Naziv;
+                hotel.GradId = update.GradId;
+                hotel.Slika = update.Slika != null ? memoryStream.ToArray() : null;
+                hotel.BrojZvjezdica = update.BrojZvjezdica;
+
+                _context.Hotels.Update(hotel);
+                await _context.SaveChangesAsync();
+
+                return _mapper.Map<Models.Hotel>(hotel);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating hotel: {ex.Message}", ex);
             }
         }
 

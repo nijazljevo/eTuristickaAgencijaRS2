@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/rezervacija.dart';
@@ -35,7 +36,9 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
 
   Future<void> _loadData() async {
     // Provjera da li je tekstualno polje prazno
-    final cijenaFilter = _cijenaController.text.isNotEmpty ? {'cijena': _cijenaController.text} : null;
+    final cijenaFilter = _cijenaController.text.isNotEmpty
+        ? {'cijena': _cijenaController.text}
+        : null;
 
     var data = await _rezervacijaProvider.get(filter: cijenaFilter);
     setState(() {
@@ -47,7 +50,8 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
     final pdf = pw.Document();
 
     final currentDate = DateTime.now();
-    final formattedDate = "${currentDate.day}.${currentDate.month}.${currentDate.year}.";
+    final formattedDate =
+        "${currentDate.day}.${currentDate.month}.${currentDate.year}.";
 
     final rezervacije = result?.result ?? [];
     final numberOfRezervacije = rezervacije.length;
@@ -64,11 +68,19 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text("Izvjestaj", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0x000080))),
+                pw.Text("Izvjestaj",
+                    style: pw.TextStyle(
+                        fontSize: 24,
+                        fontWeight: pw.FontWeight.bold,
+                        color: const PdfColor.fromInt(0x000080))),
                 pw.SizedBox(height: 10),
-                pw.Text("Datum: $formattedDate", style: const pw.TextStyle(fontSize: 18, color: PdfColor.fromInt(0x808080))),
+                pw.Text("Datum: $formattedDate",
+                    style: const pw.TextStyle(
+                        fontSize: 18, color: PdfColor.fromInt(0x808080))),
                 pw.SizedBox(height: 10),
-                pw.Text("Broj rezervacija: $numberOfRezervacije", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                pw.Text("Broj rezervacija: $numberOfRezervacije",
+                    style: pw.TextStyle(
+                        fontSize: 18, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 20),
                 pw.Table(
                   columnWidths: {
@@ -79,21 +91,33 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
                   children: [
                     pw.TableRow(
                       children: [
-                        pw.Text("Datum rezervacije", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                        pw.Text("Cijena", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                        pw.Text("Datum rezervacije",
+                            style: pw.TextStyle(
+                                fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                        pw.Text("Cijena",
+                            style: pw.TextStyle(
+                                fontSize: 18, fontWeight: pw.FontWeight.bold)),
                       ],
                     ),
                     for (final rezervacija in rezervacije)
                       pw.TableRow(
                         children: [
-                          pw.Text(rezervacija.datumRezervacije?.toString() ?? "", style: const pw.TextStyle(fontSize: 16)),
-                          pw.Text(rezervacija.cijena.toString() ?? "", style: const pw.TextStyle(fontSize: 16)),
+                          pw.Text(
+                              formatDate(
+                                  rezervacija.datumRezervacije ??
+                                      DateTime.now(),
+                                  [dd, '.', mm, '.', yyyy, '.']),
+                              style: const pw.TextStyle(fontSize: 16)),
+                          pw.Text(rezervacija.cijena.toString() ?? "",
+                              style: const pw.TextStyle(fontSize: 16)),
                         ],
                       ),
                   ],
                 ),
                 pw.SizedBox(height: 20),
-                pw.Text("Ukupno: $ukupnaCijena", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                pw.Text("Ukupno: $ukupnaCijena",
+                    style: pw.TextStyle(
+                        fontSize: 18, fontWeight: pw.FontWeight.bold)),
               ],
             ),
           );
@@ -129,7 +153,11 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
       child: MasterScreenWidget(
         title_widget: Container(
           padding: const EdgeInsets.all(12),
-          child: const Text("Rezervacije", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+          child: const Text("Rezervacije",
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
         ),
         child: Column(
           children: [
@@ -156,7 +184,8 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
                 ),
                 filled: true,
                 fillColor: Colors.grey[200],
-                contentPadding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 15.0, vertical: 15.0),
               ),
             ),
           ),
@@ -171,9 +200,11 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
           const SizedBox(width: 8),
           ElevatedButton.icon(
             onPressed: () async {
-              var newRezervacija = await Navigator.of(context).push<Rezervacija?>(
+              var newRezervacija =
+                  await Navigator.of(context).push<Rezervacija?>(
                 MaterialPageRoute(
-                  builder: (context) => const ReservationScreen(rezervacija: null),
+                  builder: (context) =>
+                      const ReservationScreen(rezervacija: null),
                 ),
               );
               if (newRezervacija != null) {
@@ -200,10 +231,11 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
   }
 
   Widget _buildDataListView() {
-   return Expanded(
+    return Expanded(
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(left: 8.0), // Adjust the left padding here
+          padding:
+              const EdgeInsets.only(left: 8.0), // Adjust the left padding here
           child: DataTable(
             headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
             columns: const [
@@ -211,7 +243,9 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
                 label: Expanded(
                   child: Text(
                     'Cijena',
-                    style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -219,59 +253,72 @@ class _RezervacijeScreenState extends State<RezervacijeScreen> {
                 label: Expanded(
                   child: Text(
                     'Datum rezervacije',
-                    style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-             
             ],
             rows: result?.result
-                .map(
-                  (Rezervacija e) => DataRow(
-                    cells: [
-                      DataCell(
-                        Text(
-                          e.cijena?.toString() ?? "",
-                          style: const TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                        onTap: () async {
-                          var updatedRezervacija = await Navigator.of(context).push<Rezervacija?>(
-                            MaterialPageRoute(
-                              builder: (context) => ReservationScreen(rezervacija: e),
+                    .map(
+                      (Rezervacija e) => DataRow(
+                        cells: [
+                          DataCell(
+                            Text(
+                              e.cijena?.toString() ?? "",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.normal),
                             ),
-                          );
-                          if (updatedRezervacija != null) {
-                            setState(() {
-                              int index = result!.result.indexWhere((element) => element.id == updatedRezervacija!.id);
-                              result!.result[index] = updatedRezervacija;
-                            });
-                          }
-                          _loadData();
-                        },
-                      ),
-                      DataCell(
-                        Text(
-                          e.datumRezervacije != null ? e.datumRezervacije.toString() : '',
-                        ),
-                        onTap: () async {
-                          var updatedRezervacija = await Navigator.of(context).push<Rezervacija?>(
-                            MaterialPageRoute(
-                              builder: (context) => ReservationScreen(rezervacija: e),
+                            onTap: () async {
+                              var updatedRezervacija =
+                                  await Navigator.of(context)
+                                      .push<Rezervacija?>(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ReservationScreen(rezervacija: e),
+                                ),
+                              );
+                              if (updatedRezervacija != null) {
+                                setState(() {
+                                  int index = result!.result.indexWhere(
+                                      (element) =>
+                                          element.id == updatedRezervacija!.id);
+                                  result!.result[index] = updatedRezervacija;
+                                });
+                              }
+                              _loadData();
+                            },
+                          ),
+                          DataCell(
+                            Text(
+                              formatDate(e.datumRezervacije ?? DateTime.now(),
+                                  [dd, '.', mm, '.', yyyy, '.']),
                             ),
-                          );
-                          if (updatedRezervacija != null) {
-                            setState(() {
-                              int index = result!.result.indexWhere((element) => element.id == updatedRezervacija!.id);
-                              result!.result[index] = updatedRezervacija;
-                            });
-                          }
-                          _loadData();
-                        },
+                            onTap: () async {
+                              var updatedRezervacija =
+                                  await Navigator.of(context)
+                                      .push<Rezervacija?>(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ReservationScreen(rezervacija: e),
+                                ),
+                              );
+                              if (updatedRezervacija != null) {
+                                setState(() {
+                                  int index = result!.result.indexWhere(
+                                      (element) =>
+                                          element.id == updatedRezervacija!.id);
+                                  result!.result[index] = updatedRezervacija;
+                                });
+                              }
+                              _loadData();
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                )
-                .toList() ??
+                    )
+                    .toList() ??
                 [],
           ),
         ),

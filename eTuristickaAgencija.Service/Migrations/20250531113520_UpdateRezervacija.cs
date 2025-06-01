@@ -75,7 +75,7 @@ namespace eTuristickaAgencija.Service.Migrations
                 keyColumn: "ID",
                 keyValue: 1,
                 columns: new[] { "BrojOsoba", "CheckIn", "CheckOut", "TipSobe" },
-                values: new object[] { 2, new DateTime(2020, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2020, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Dvokrevetna soba" });
+                values: new object[] { 2, new DateTime(2020, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2020, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Dvokrevetna" });
         }
 
         /// <inheritdoc />

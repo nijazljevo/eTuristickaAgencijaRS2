@@ -85,80 +85,103 @@ namespace eTuristickaAgencija.Service
             static object isLocked = new object();
             static ITransformer model = null;
 
-            public List<Models.Destinacija> GetPreporucenaDestinacija(int id)
+        public List<Models.Destinacija> GetPreporucenaDestinacija(int id)
+        {
+            lock (isLocked)
             {
-                lock (isLocked)
+                if (mlContext == null)
                 {
-                    if (mlContext == null)
+                    mlContext = new MLContext();
+
+                    var destinationData = _context.Destinacijas.Include("Ocjenas").ToList();
+
+                    var data = new List<DestinationEntry>();
+
+                    foreach (var destination in destinationData)
                     {
-                        mlContext = new MLContext();
-
-                        var destinationData = _context.Destinacijas.Include("Ocjenas").ToList();
-
-                        var data = new List<DestinationEntry>();
-
-                        foreach (var destination in destinationData)
+                        if (destination.Ocjenas != null && destination.Ocjenas.Count > 1)
                         {
-                            if (destination.Ocjenas.Count > 1)
+                            var distinctUserId = destination.Ocjenas
+                                .Where(x => x.KorisnikId.HasValue && x.DestinacijaId.HasValue)
+                                .Select(x => x.KorisnikId.Value)
+                                .Distinct()
+                                .ToList();
+
+                            foreach (var userId in distinctUserId)
                             {
-                                var distinctUserId = destination.Ocjenas.Select(o => o.KorisnikId).ToList();
+                                var ratedDestinations = destination.Ocjenas
+                                    .Where(x => x.KorisnikId != userId && x.DestinacijaId.HasValue);
 
-                                distinctUserId.ForEach(userId =>
+                                foreach (var ratedDestination in ratedDestinations)
                                 {
-                                    var ratedDestinations = destination.Ocjenas.Where(o => o.KorisnikId != userId);
-
-                                    foreach (var ratedDestination in ratedDestinations)
+                                    if (destination.Id > 0 && ratedDestination.DestinacijaId.HasValue)
                                     {
                                         data.Add(new DestinationEntry()
                                         {
                                             DestinationID = (uint)destination.Id,
-                                            CoRatedDestinationID = (uint)ratedDestination.DestinacijaId,
+                                            CoRatedDestinationID = (uint)ratedDestination.DestinacijaId.Value,
+                                            Label = 1f
                                         });
                                     }
-                                });
+                                }
                             }
                         }
-
-                        var traindata = mlContext.Data.LoadFromEnumerable(data);
-
-                        MatrixFactorizationTrainer.Options options = new MatrixFactorizationTrainer.Options();
-                        options.MatrixColumnIndexColumnName = nameof(DestinationEntry.DestinationID);
-                        options.MatrixRowIndexColumnName = nameof(DestinationEntry.CoRatedDestinationID);
-                        options.LabelColumnName = "Label";
-                        options.LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass;
-                        options.Alpha = 0.01;
-                        options.Lambda = 0.025;
-                        options.NumberOfIterations = 100;
-                        options.C = 0.00001;
-
-                        var est = mlContext.Recommendation().Trainers.MatrixFactorization(options);
-
-                        model = est.Fit(traindata);
                     }
+
+                    if (!data.Any())
+                    {
+                        model = null;
+                        return new List<Models.Destinacija>();
+                    }
+
+                    var traindata = mlContext.Data.LoadFromEnumerable(data);
+
+                    MatrixFactorizationTrainer.Options options = new MatrixFactorizationTrainer.Options();
+                    options.MatrixColumnIndexColumnName = nameof(DestinationEntry.DestinationID);
+                    options.MatrixRowIndexColumnName = nameof(DestinationEntry.CoRatedDestinationID);
+                    options.LabelColumnName = "Label";
+                    options.LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass;
+                    options.Alpha = 0.01;
+                    options.Lambda = 0.025;
+                    options.NumberOfIterations = 100;
+                    options.C = 0.00001;
+
+                    var est = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+                    model = est.Fit(traindata);
                 }
-
-                // Prediction
-                var destinations = _context.Destinacijas.Where(x => x.Id != id);
-
-                var predictionResult = new List<Tuple<Database.Destinacija, float>>();
-
-                foreach (var destination in destinations)
-                {
-                    var predictionengine = mlContext.Model.CreatePredictionEngine<DestinationEntry, CoRatedDestinationPrediction>(model);
-                    var prediction = predictionengine.Predict(
-                                             new DestinationEntry()
-                                             {
-                                                 DestinationID = (uint)id,
-                                                 CoRatedDestinationID = (uint)destination.Id
-                                             });
-
-                    predictionResult.Add(new Tuple<Database.Destinacija, float>(destination, prediction.Score));
-                }
-
-                var finalResult = predictionResult.OrderByDescending(x => x.Item2).Select(x => x.Item1).Take(3).ToList();
-
-                return _mapper.Map<List<Models.Destinacija>>(finalResult);
             }
+
+            if (model == null)
+            {
+                // Ovjde je pucalo ako nisam dodao ovu liniju
+                mlContext = null;
+                return new List<Models.Destinacija>();
+            }
+
+            // Prediction
+            var destinations = _context.Destinacijas.Where(x => x.Id != id).ToList();
+
+            var predictionResult = new List<Tuple<Database.Destinacija, float>>();
+
+            foreach (var destination in destinations)
+            {
+                var predictionengine = mlContext.Model.CreatePredictionEngine<DestinationEntry, CoRatedDestinationPrediction>(model);
+                var prediction = predictionengine.Predict(
+                    new DestinationEntry()
+                    {
+                        DestinationID = (uint)id,
+                        CoRatedDestinationID = (uint)destination.Id,
+                        Label = 0f
+                    });
+
+                predictionResult.Add(new Tuple<Database.Destinacija, float>(destination, prediction.Score));
+            }
+
+            var finalResult = predictionResult.OrderByDescending(x => x.Item2).Select(x => x.Item1).Take(3).ToList();
+
+            return _mapper.Map<List<Models.Destinacija>>(finalResult);
+        }
 
        
 

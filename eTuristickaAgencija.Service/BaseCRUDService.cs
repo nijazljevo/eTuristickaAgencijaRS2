@@ -46,6 +46,22 @@ namespace eTuristickaAgencija.Service
         {
         }
 
+        public virtual async Task<T> UpdateAsync(TUpdate update)
+        {
+            var set = Context.Set<TDb>();
+            var entity = await set.FindAsync(update);
+            if (entity != null)
+            {
+                Mapper.Map(update, entity);
+            }
+            else
+            {
+                return null;
+            }
+            await Context.SaveChangesAsync();
+            return Mapper.Map<T>(entity);
+        }
+
         public virtual T Update(int id, TUpdate update)
         {
             var set = Context.Set<TDb>();

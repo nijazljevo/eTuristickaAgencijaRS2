@@ -14,6 +14,8 @@ namespace eTuristickaAgencija.Service
 
         T Update(int id, TUpdate update);
 
+        Task<T> UpdateAsync(TUpdate update);
+
         T Delete(int id);
     }
 }

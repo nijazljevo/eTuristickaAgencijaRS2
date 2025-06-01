@@ -75,7 +75,7 @@ namespace eTuristickaAgencija.Service.Database
                          CheckIn = new DateTime(2020, 09, 10),
                          CheckOut = new DateTime(2020, 09, 15),
                          BrojOsoba = 2,
-                         TipSobe = "Dvokrevetna soba",
+                         TipSobe = "Dvokrevetna",
                          HotelId = 1,
                          Cijena = 300
                      });
