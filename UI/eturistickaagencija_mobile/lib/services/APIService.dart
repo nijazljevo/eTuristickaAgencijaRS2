@@ -14,7 +14,7 @@ class APIService {
   static String? username;
   static String? password;
   static int? korisnikId;
-  static const String baseRoute = "http://192.168.10.189:5001/";
+  static const String baseRoute = "http://192.168.1.7:5001/";
   String? route;
 
   APIService({this.route});
@@ -250,6 +250,21 @@ class APIService {
       return rezervacije;
     }
     return null;
+  }
+
+  static Future<bool?> cancelRezervation(int id) async {
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final response = await http.put(
+        Uri.parse('${baseRoute}Rezervacija/otkazi?rezervacijaId=$id'),
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+          HttpHeaders.authorizationHeader: basicAuth
+        });
+    if (response.statusCode == 200) {
+      return bool.tryParse(response.body) ?? true;
+    }
+    return false;
   }
 
   static Future<Destinacija?> getDestinacija(int? destinacijaId) async {
