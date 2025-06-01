@@ -51,7 +51,7 @@ namespace eTuristickaAgencija.Service
                 throw new Exception("Rezervacija not found");
             }
 
-            if (rezervacija.CheckIn.Subtract(DateTime.Now).Days > 7)
+            if (rezervacija.CheckIn.Subtract(DateTime.Now).Days >= 7)
                 rezervacija.Otkazana = true;
             else
                 return false;
