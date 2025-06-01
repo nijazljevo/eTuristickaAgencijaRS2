@@ -521,7 +521,7 @@ namespace eTuristickaAgencija.Service.Migrations
                             HotelId = 1,
                             KorisnikId = 2,
                             Otkazana = false,
-                            TipSobe = "Dvokrevetna soba"
+                            TipSobe = "Dvokrevetna"
                         });
                 });
 
