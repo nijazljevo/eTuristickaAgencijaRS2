@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:eturistickaagencija_mobile/model/grad.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,16 +16,43 @@ class HotelListPage extends StatefulWidget {
 
 class _HotelListPageState extends State<HotelListPage> {
   List<Hotel> hotels = [];
+  List<Grad> gradovi = [];
+  final nazivController = TextEditingController();
+  final brojZvjezdicaController = TextEditingController();
+  final gradController = TextEditingController();
+  int selectedGradId = 0;
+  int selectedBrojZvjezdica = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchHotelData();
+    fetchScreenData();
   }
 
-  Future<void> fetchHotelData() async {
+  Future<void> fetchScreenData() async {
+    await fetchGradoviData();
+    await fetchHotelData();
+  }
+
+  Future<void> fetchGradoviData() async {
     try {
-      final List<dynamic>? fetchedData = await APIService.get('Hoteli', null);
+      final List<dynamic>? fetchedData = await APIService.get('Gradovi', null);
+      if (fetchedData != null) {
+        final List<Grad> fetchedGradovi =
+            fetchedData.map((json) => Grad.fromJson(json)).toList();
+        setState(() {
+          gradovi = fetchedGradovi;
+        });
+      }
+    } catch (e) {
+      print('Greška prilikom dohvata podataka gradova: $e');
+    }
+  }
+
+  Future<void> fetchHotelData({Map<String, dynamic>? searchObj}) async {
+    try {
+      final List<dynamic>? fetchedData =
+          await APIService.get('Hoteli', searchObj);
       if (fetchedData != null) {
         final List<Hotel> fetchedHotel =
             fetchedData.map((json) => Hotel.fromJson(json)).toList();
@@ -85,6 +113,139 @@ class _HotelListPageState extends State<HotelListPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              await showModalBottomSheet(
+                  context: context,
+                  showDragHandle: true,
+                  useSafeArea: true,
+                  isScrollControlled: true, // This allows the modal to resize
+                  builder: (context) => Padding(
+                        padding: EdgeInsets.only(
+                          left: 20,
+                          right: 20,
+                          top: 20,
+                          // This padding pushes the content up when keyboard appears
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                        ),
+                        child: Form(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize
+                                  .min, // Important to keep it minimal
+                              children: [
+                                TextField(
+                                  controller: nazivController,
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    labelText: 'Naziv',
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        nazivController.clear();
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: DropdownMenu<int>(
+                                      controller: gradController,
+                                      initialSelection: selectedGradId,
+                                      width: MediaQuery.of(context).size.width -
+                                          40,
+                                      dropdownMenuEntries: List.generate(
+                                          gradovi.length,
+                                          (index) => DropdownMenuEntry<int>(
+                                              value: gradovi[index].id ?? 0,
+                                              label: gradovi[index].naziv ??
+                                                  'Bez naziva')),
+                                      label: const Text('Grad'),
+                                      trailingIcon: IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedGradId = 0;
+                                            gradController.clear();
+                                          });
+                                        },
+                                      ),
+                                      onSelected: (value) {
+                                        setState(() {
+                                          selectedGradId = value ?? 0;
+                                        });
+                                      }),
+                                ),
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: DropdownMenu<int>(
+                                      controller: brojZvjezdicaController,
+                                      initialSelection: selectedBrojZvjezdica,
+                                      width: MediaQuery.of(context).size.width -
+                                          40,
+                                      dropdownMenuEntries: const [
+                                        DropdownMenuEntry<int>(
+                                            value: 0, label: 'Odaberi'),
+                                        DropdownMenuEntry<int>(
+                                            value: 1, label: '1'),
+                                        DropdownMenuEntry<int>(
+                                            value: 2, label: '2'),
+                                        DropdownMenuEntry<int>(
+                                            value: 3, label: '3'),
+                                        DropdownMenuEntry<int>(
+                                            value: 4, label: '4'),
+                                        DropdownMenuEntry<int>(
+                                            value: 5, label: '5'),
+                                      ],
+                                      label: const Text('Broj zvjezdica'),
+                                      trailingIcon: IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedBrojZvjezdica = 0;
+                                            brojZvjezdicaController.clear();
+                                          });
+                                        },
+                                      ),
+                                      onSelected: (value) {
+                                        setState(() {
+                                          selectedBrojZvjezdica = value ?? 0;
+                                        });
+                                      }),
+                                ),
+                                const SizedBox(height: 30),
+                                ElevatedButton(
+                                    onPressed: () {
+                                      final naziv = nazivController.text;
+                                      if (naziv.isEmpty &&
+                                          selectedBrojZvjezdica == 0 &&
+                                          selectedGradId == 0) {
+                                        fetchHotelData();
+                                      }
+                                      final searchObject = {
+                                        if (naziv.isNotEmpty) 'naziv': naziv,
+                                        if (selectedBrojZvjezdica != 0)
+                                          'brojZvjezdica':
+                                              selectedBrojZvjezdica.toString(),
+                                        if (selectedGradId != 0)
+                                          'gradId': selectedGradId.toString(),
+                                      };
+
+                                      fetchHotelData(searchObj: searchObject);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Pretraži'))
+                              ]),
+                        ),
+                      ));
+            },
+          )
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
@@ -119,6 +280,11 @@ class _HotelListPageState extends State<HotelListPage> {
                 ],
               ),
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                      "Grad: ${gradovi.where((e) => e.id == hotel.gradId).first.naziv}"),
+                ),
                 if (hotel.slika != null && hotel.slika!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
