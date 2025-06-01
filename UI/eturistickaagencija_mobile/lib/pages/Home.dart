@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../model/destinacija.dart';
-import '../model/ocjena.dart';
 import '../services/APIService.dart';
 import 'DestinacijaDetails.dart';
 
@@ -14,25 +11,25 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
- Future<List<Destinacija>?> getPreporuceneDestinacije() async {
- 
-  try {
-        final preporuceneDestinacije = await APIService.get('Destinacije/preporuceno', APIService.korisnikId);
+  Future<List<Destinacija>?> getPreporuceneDestinacije() async {
+    try {
+      final preporuceneDestinacije = await APIService.get(
+          'Destinacije/preporuceno', APIService.korisnikId);
 
-
-    print('Preporučene destinacije dobivene: $preporuceneDestinacije');
-    if (preporuceneDestinacije != null) {
-      return preporuceneDestinacije.map((i) => Destinacija.fromJson(i)).toList();
-    } else {
-      print('Nema podataka za preporučene destinacije.');
+      print('Preporučene destinacije dobivene: $preporuceneDestinacije');
+      if (preporuceneDestinacije != null) {
+        return preporuceneDestinacije
+            .map((i) => Destinacija.fromJson(i))
+            .toList();
+      } else {
+        print('Nema podataka za preporučene destinacije.');
+        return null;
+      }
+    } catch (e) {
+      print('Greška prilikom dohvata preporučenih destinacija: $e');
       return null;
     }
-  } catch (e) {
-    print('Greška prilikom dohvata preporučenih destinacija: $e');
-    return null;
   }
-}
-
 
   Widget preporucenaHotelWidget(Destinacija destinacija) {
     return InkWell(
@@ -40,7 +37,8 @@ class _HomeState extends State<Home> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DestinacijaDetailsScreen(destinacija: destinacija),
+            builder: (context) =>
+                DestinacijaDetailsScreen(destinacija: destinacija),
           ),
         );
       },
@@ -50,7 +48,6 @@ class _HomeState extends State<Home> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -63,7 +60,6 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   const SizedBox(height: 5),
-                 
                 ],
               ),
             ],
@@ -77,178 +73,169 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: const Text('Početna'),
+      ),
+      drawer: Drawer(
+        backgroundColor: const Color.fromARGB(255, 185, 213, 236),
+        child: Column(
           children: [
-            const Text('Početna'),
-            InkWell(
-              onTap: () => {
-                Navigator.of(context)
-                    .pushNamed('Korpa')
-                    .then((_) => setState(() {}))
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AppBar(
+                backgroundColor: const Color.fromARGB(255, 185, 213, 236),
+                title: const Text(
+                  "Meni",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
+                automaticallyImplyLeading: false,
+              ),
+            ),
+            const Divider(
+              color: Colors.white,
+              indent: 16, // Padding sa lijeve strane
+              endIndent: 16, // Padding sa desne strane
+            ),
+            // Bijela linija
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16), // Padding sa lijeve i desne strane
+              leading: const Icon(Icons.home),
+              title: const Text(
+                "Početna",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushReplacementNamed('Home');
               },
-            )
+            ),
+            const Divider(
+              color: Colors.white,
+              indent: 16, // Padding sa lijeve strane
+              endIndent: 16, // Padding sa desne strane
+            ),
+
+            ListTile(
+              contentPadding:const  EdgeInsets.symmetric(
+                  horizontal: 16), // Padding sa lijeve i desne strane
+              leading: const Icon(Icons.person),
+              title: const Text(
+                "Profil",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed('Profil');
+              },
+            ),
+            const Divider(
+              color: Colors.white,
+              indent: 16, // Padding sa lijeve strane
+              endIndent: 16, // Padding sa desne strane
+            ),
+
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16), // Padding sa lijeve i desne strane
+              leading: const Icon(Icons.hotel),
+              title: const Text(
+                "Hotel",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed('HotelListPage');
+              },
+            ),
+            const Divider(
+              color: Colors.white,
+              indent: 16, // Padding sa lijeve strane
+              endIndent: 16, // Padding sa desne strane
+            ),
+
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16), // Padding sa lijeve i desne strane
+              leading: const Icon(Icons.airplane_ticket),
+              title: const Text(
+                "Destinacija",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed('DestinacijaListPage');
+              },
+            ),
+            const Divider(
+              color: Colors.white,
+              indent: 16, // Padding sa lijeve strane
+              endIndent: 16, // Padding sa desne strane
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16), // Padding sa lijeve i desne strane
+              leading: const Icon(Icons.hotel),
+              title: const Text(
+                "Moje rezervacije",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushNamed('MojeRezervacijeScreen');
+              },
+            ),
+            const Divider(
+              color: Colors.white,
+              indent: 16, // Padding sa lijeve strane
+              endIndent: 16, // Padding sa desne strane
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16), // Padding sa lijeve i desne strane
+              leading: const Icon(Icons.logout),
+              title: const Text(
+                "Odjava",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).pushReplacementNamed('/');
+              },
+            ),
           ],
         ),
       ),
-     drawer:Drawer(
-  backgroundColor: Color.fromARGB(255, 185, 213, 236),
-  child: Column(
-    children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: AppBar(
-          backgroundColor: Color.fromARGB(255, 185, 213, 236),
-          title: Text(
-            "Meni",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-        ),
-      ),
-    Divider(
-  color: Colors.white,
-  indent: 16, // Padding sa lijeve strane
-  endIndent: 16, // Padding sa desne strane
-),
- // Bijela linija
-      ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16), // Padding sa lijeve i desne strane
-        leading: const Icon(Icons.home),
-        title: const Text(
-          "Početna",
-          style: TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).pushReplacementNamed('Home');
-        },
-      ),
-      const Divider(
-  color: Colors.white,
-  indent: 16, // Padding sa lijeve strane
-  endIndent: 16, // Padding sa desne strane
-),
-
-      ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16), // Padding sa lijeve i desne strane
-        leading: const Icon(Icons.person),
-        title: const Text(
-          "Profil",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).pushNamed('Profil');
-        },
-      ),
-      const Divider(
-  color: Colors.white,
-  indent: 16, // Padding sa lijeve strane
-  endIndent: 16, // Padding sa desne strane
-),
-
-      ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16), // Padding sa lijeve i desne strane
-        leading: const Icon(Icons.hotel),
-        title: const Text(
-          "Hotel",
-          style: TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).pushNamed('HotelListPage');
-        },
-      ),
-      const Divider(
-  color: Colors.white,
-  indent: 16, // Padding sa lijeve strane
-  endIndent: 16, // Padding sa desne strane
-),
-
-
-      ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16), // Padding sa lijeve i desne strane
-        leading: const Icon(Icons.airplane_ticket),
-        title: const Text(
-          "Destinacija",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).pushNamed('DestinacijaListPage');
-        },
-      ),
-      const Divider(
-  color: Colors.white,
-  indent: 16, // Padding sa lijeve strane
-  endIndent: 16, // Padding sa desne strane
-),
- ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16), // Padding sa lijeve i desne strane
-        leading: const Icon(Icons.hotel),
-        title: const Text(
-          "Moje rezervacije",
-          style: TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).pushNamed('MojeRezervacijeScreen');
-        },
-      ),
-      const Divider(
-  color: Colors.white,
-  indent: 16, // Padding sa lijeve strane
-  endIndent: 16, // Padding sa desne strane
-),
-      ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16), // Padding sa lijeve i desne strane
-        leading: const Icon(Icons.logout),
-        title: const Text(
-          "Odjava",
-          style: TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).pushReplacementNamed('/');
-        },
-        
-      ),
-    ],
-  ),
-),
-
-
-
       body: Column(
         children: [
           const Padding(
             padding: EdgeInsets.all(10.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Preporučeno', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25)),
+              child: Text('Preporučeno',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 25)),
             ),
           ),
           Flexible(
             child: FutureBuilder<List<Destinacija>?>(
               future: getPreporuceneDestinacije(),
-              builder: (BuildContext context, AsyncSnapshot<List<Destinacija>?> snapshot) {
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<Destinacija>?> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else {
