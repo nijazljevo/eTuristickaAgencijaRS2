@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:eturistickaagencija_mobile/model/rezervacija.dart';
 import 'package:eturistickaagencija_mobile/services/APIService.dart';
 import 'package:eturistickaagencija_mobile/utils/util.dart';
+import 'package:intl/intl.dart';
 
 class MojeRezervacijeScreen extends StatefulWidget {
   const MojeRezervacijeScreen({Key? key}) : super(key: key);
@@ -110,11 +111,10 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                             Row(
                               children: [
                                 Text(
-                                  'Datum rezervacije: ${rezervacija.datumRezervacije}',
+                                  'Datum rezervacije: '
+                                  '${DateFormat("dd. MM. yyyy.").format(rezervacija.datumRezervacije)}',
                                   style: const TextStyle(
-                                    fontWeight:
-                                        FontWeight.bold, // Boldiranje teksta
-                                  ),
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 const Spacer(),
                                 Checkbox(
@@ -190,19 +190,30 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
+                              'Check-in: '
+                              '${DateFormat("dd. MM. yyyy.").format(rezervacija.checkIn)}',
+                            ),
+                            Text(
+                              'Check-out: '
+                              '${DateFormat("dd. MM. yyyy.").format(rezervacija.checkOut)}',
+                            ),
+                            Text(
+                              'Broj osoba: ${rezervacija.brojOsoba}',
+                            ),
+                            Text(
+                              'Tip sobe: ${rezervacija.tipSobe}',
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
                               'Cijena: ${rezervacija.cijena}',
-                              style: const TextStyle(
-                                fontWeight:
-                                    FontWeight.bold, // Boldiranje teksta
-                              ),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Status: ${rezervacija.otkazana ? 'Otkazana' : 'Aktivna'}',
-                              style: const TextStyle(
-                                fontWeight:
-                                    FontWeight.bold, // Boldiranje teksta
-                              ),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
