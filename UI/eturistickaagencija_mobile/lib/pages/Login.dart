@@ -26,10 +26,10 @@ class _LoginState extends State<Login> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                  "assets/images/download.png",
-                  height: 100,
-                  width: 100,
-                ),
+                "assets/images/download.png",
+                height: 100,
+                width: 100,
+              ),
               const SizedBox(height: 65),
               TextField(
                 controller: usernameController,
@@ -60,7 +60,7 @@ class _LoginState extends State<Login> {
                 height: 50,
                 width: 250,
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: TextButton(
@@ -70,8 +70,8 @@ class _LoginState extends State<Login> {
                     korisnik = await APIService.prijava();
                     if (korisnik != null) {
                       APIService.korisnikId = korisnik!.id;
-                     // ignore: use_build_context_synchronously
-                     Navigator.of(context).pushReplacementNamed('Home');
+                      // ignore: use_build_context_synchronously
+                      Navigator.of(context).pushReplacementNamed('Home');
                     } else {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(

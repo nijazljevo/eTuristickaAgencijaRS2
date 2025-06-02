@@ -56,7 +56,6 @@ class _HomeState extends State<Home> {
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -73,154 +72,12 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        centerTitle: true,
         title: const Text('Početna'),
       ),
-      drawer: Drawer(
-        backgroundColor: const Color.fromARGB(255, 185, 213, 236),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: AppBar(
-                backgroundColor: const Color.fromARGB(255, 185, 213, 236),
-                title: const Text(
-                  "Meni",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                centerTitle: true,
-                automaticallyImplyLeading: false,
-              ),
-            ),
-            const Divider(
-              color: Colors.white,
-              indent: 16, // Padding sa lijeve strane
-              endIndent: 16, // Padding sa desne strane
-            ),
-            // Bijela linija
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16), // Padding sa lijeve i desne strane
-              leading: const Icon(Icons.home),
-              title: const Text(
-                "Početna",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushReplacementNamed('Home');
-              },
-            ),
-            const Divider(
-              color: Colors.white,
-              indent: 16, // Padding sa lijeve strane
-              endIndent: 16, // Padding sa desne strane
-            ),
-
-            ListTile(
-              contentPadding:const  EdgeInsets.symmetric(
-                  horizontal: 16), // Padding sa lijeve i desne strane
-              leading: const Icon(Icons.person),
-              title: const Text(
-                "Profil",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed('Profil');
-              },
-            ),
-            const Divider(
-              color: Colors.white,
-              indent: 16, // Padding sa lijeve strane
-              endIndent: 16, // Padding sa desne strane
-            ),
-
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16), // Padding sa lijeve i desne strane
-              leading: const Icon(Icons.hotel),
-              title: const Text(
-                "Hotel",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed('HotelListPage');
-              },
-            ),
-            const Divider(
-              color: Colors.white,
-              indent: 16, // Padding sa lijeve strane
-              endIndent: 16, // Padding sa desne strane
-            ),
-
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16), // Padding sa lijeve i desne strane
-              leading: const Icon(Icons.airplane_ticket),
-              title: const Text(
-                "Destinacija",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed('DestinacijaListPage');
-              },
-            ),
-            const Divider(
-              color: Colors.white,
-              indent: 16, // Padding sa lijeve strane
-              endIndent: 16, // Padding sa desne strane
-            ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16), // Padding sa lijeve i desne strane
-              leading: const Icon(Icons.hotel),
-              title: const Text(
-                "Moje rezervacije",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed('MojeRezervacijeScreen');
-              },
-            ),
-            const Divider(
-              color: Colors.white,
-              indent: 16, // Padding sa lijeve strane
-              endIndent: 16, // Padding sa desne strane
-            ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16), // Padding sa lijeve i desne strane
-              leading: const Icon(Icons.logout),
-              title: const Text(
-                "Odjava",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).pushReplacementNamed('/');
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: const MainDrawer(),
       body: Column(
         children: [
           const Padding(
@@ -262,6 +119,135 @@ class _HomeState extends State<Home> {
                 }
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MainDrawer extends StatelessWidget {
+  const MainDrawer({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      child: ListView(
+        children: [
+          DrawerHeader(
+              margin: EdgeInsets.zero,
+              decoration:
+                  BoxDecoration(color: Theme.of(context).colorScheme.primary),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${APIService.username}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ])),
+          // Bijela linija
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16), // Padding sa lijeve i desne strane
+            leading: const Icon(Icons.home),
+            title: const Text(
+              "Početna",
+            ),
+            onTap: () {
+              Navigator.of(context).pushReplacementNamed('Home');
+            },
+          ),
+
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16), // Padding sa lijeve i desne strane
+            leading: const Icon(Icons.person),
+            title: const Text(
+              "Profil",
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed('Profil');
+            },
+          ),
+
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16), // Padding sa lijeve i desne strane
+            leading: const Icon(Icons.hotel),
+            title: const Text(
+              "Hotel",
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed('HotelListPage');
+            },
+          ),
+
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16), // Padding sa lijeve i desne strane
+            leading: const Icon(Icons.airplane_ticket),
+            title: const Text(
+              "Destinacija",
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed('DestinacijaListPage');
+            },
+          ),
+
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16), // Padding sa lijeve i desne strane
+            leading: const Icon(Icons.hotel),
+            title: const Text(
+              "Moje rezervacije",
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed('MojeRezervacijeScreen');
+            },
+          ),
+
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16), // Padding sa lijeve i desne strane
+            leading: const Icon(Icons.logout),
+            title: const Text(
+              "Odjava",
+            ),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Odjava'),
+                    content: const Text('Da li zaista želite da se odjavite?'),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushReplacementNamed('/');
+                        },
+                        child: const Text('Da'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Ne'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

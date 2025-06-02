@@ -137,6 +137,9 @@ class _ReservationPageState extends State<ReservationPage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          centerTitle: true,
           title: Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(widget.destinacija.naziv!),

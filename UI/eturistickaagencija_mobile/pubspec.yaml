@@ -78,6 +78,18 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+
+  fonts:
+    - family: MonaSans
+      fonts:
+        - asset: assets/fonts/MonaSans-Regular.ttf
+        - asset: assets/fonts/MonaSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/MonaSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/MonaSans-SemiBold.ttf
+          weight: 500
+          style: italic
       
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

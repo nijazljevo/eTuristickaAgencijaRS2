@@ -22,9 +22,11 @@ class _HotelListPageState extends State<HotelListPage> {
   final gradController = TextEditingController();
   int selectedGradId = 0;
   int selectedBrojZvjezdica = 0;
+  late bool _isLoading;
 
   @override
   void initState() {
+    _isLoading = true;
     super.initState();
     fetchScreenData();
   }
@@ -32,6 +34,9 @@ class _HotelListPageState extends State<HotelListPage> {
   Future<void> fetchScreenData() async {
     await fetchGradoviData();
     await fetchHotelData();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> fetchGradoviData() async {
@@ -104,14 +109,42 @@ class _HotelListPageState extends State<HotelListPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            centerTitle: true,
+            title: const Text(
+              'Hoteli',
+            )),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (hotels.isEmpty) {
+      return Scaffold(
+          appBar: AppBar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              centerTitle: true,
+              title: const Text(
+                'Hoteli',
+              )),
+          body: const Center(
+            child: Text('Nema podataka o hotelima.'),
+          ));
+    }
+
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        centerTitle: true,
         title: const Text(
           'Hoteli',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
         ),
         actions: [
           IconButton(
@@ -262,7 +295,6 @@ class _HotelListPageState extends State<HotelListPage> {
                     child: Text(
                       hotel.naziv ?? "",
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),

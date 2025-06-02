@@ -13,9 +13,11 @@ class MojeRezervacijeScreen extends StatefulWidget {
 
 class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
   List<Rezervacije> mojeRezervacije = [];
+  late bool _isLoading;
 
   @override
   void initState() {
+    _isLoading = true;
     super.initState();
     fetchMojeRezervacije();
   }
@@ -32,8 +34,12 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
             .toList();
         setState(() {
           mojeRezervacije = fetchedRezervacije;
+          _isLoading = false;
         });
       } else {
+        setState(() {
+          _isLoading = false;
+        });
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -55,6 +61,9 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
       }
     } catch (e) {
       print('Greška prilikom dohvata podataka rezervacija: $e');
+      setState(() {
+        _isLoading = false;
+      });
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -80,148 +89,164 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        centerTitle: true,
         title: const Text(
           'Moje rezervacije',
-          style: TextStyle(
-            color: Colors.black, // Crna boja teksta
-            fontWeight: FontWeight.bold, // Boldiranje teksta
-          ),
         ),
-        backgroundColor: Colors.white, // Boja pozadine trake aplikacije
-        iconTheme: const IconThemeData(
-            color: Colors.black), // Boja ikona u traci aplikacije
         elevation: 0, // Uklanja sjenu ispod trake aplikacije
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          child: mojeRezervacije.isEmpty
-              ? const Center(
-                  child: Text('Nemate rezervacija.'),
-                )
-              : Column(
-                  children: mojeRezervacije.map((rezervacija) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Datum rezervacije: '
-                                  '${DateFormat("dd. MM. yyyy.").format(rezervacija.datumRezervacije)}',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const Spacer(),
-                                Checkbox(
-                                  value: !rezervacija.otkazana,
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      if (rezervacija.otkazana) return;
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text(
-                                                'Potvrda otkazivanja rezervacije'),
-                                            content: const Text(
-                                                'Da li ste sigurni da želite otkazati rezervaciju?'),
-                                            actions: [
-                                              ElevatedButton(
-                                                onPressed: () async {
-                                                  final bool? result =
-                                                      await APIService
-                                                          .cancelRezervation(
-                                                              rezervacija.id!);
-                                                  if (result == null ||
-                                                      !result) {
-                                                    await showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext
-                                                            context) {
-                                                          return AlertDialog(
-                                                            title: const Text(
-                                                                'Greška'),
-                                                            content: const Text(
-                                                                'Rezervaciju je moguće otkazati najkasnije 7 dana prije početka (check in).'),
-                                                            actions: [
-                                                              ElevatedButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop();
-                                                                },
-                                                                child:
-                                                                    const Text(
-                                                                        'OK'),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        });
+      body: Column(
+        children: [
+          Expanded(
+            child: _isLoading == true
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 8),
+                      child: (mojeRezervacije.isEmpty && _isLoading == false)
+                          ? const Center(
+                              child: Text('Nemate rezervacija.'),
+                            )
+                          : Column(
+                              children: mojeRezervacije.map((rezervacija) {
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Datum rezervacije: '
+                                              '${DateFormat("dd. MM. yyyy.").format(rezervacija.datumRezervacije)}',
+                                              style: const TextStyle(),
+                                            ),
+                                            const Spacer(),
+                                            Checkbox(
+                                              value: !rezervacija.otkazana,
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  if (rezervacija.otkazana)
                                                     return;
-                                                  } else {
-                                                    Navigator.of(context).pop();
-                                                    setState(() {
-                                                      rezervacija.otkazana =
-                                                          true;
-                                                    });
-                                                  }
-                                                },
-                                                child: const Text('Da'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                child: const Text('Ne'),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    });
-                                  },
-                                ),
-                              ],
+                                                  showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            'Potvrda otkazivanja rezervacije'),
+                                                        content: const Text(
+                                                            'Da li ste sigurni da želite otkazati rezervaciju?'),
+                                                        actions: [
+                                                          ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              final bool?
+                                                                  result =
+                                                                  await APIService
+                                                                      .cancelRezervation(
+                                                                          rezervacija
+                                                                              .id!);
+                                                              if (result ==
+                                                                      null ||
+                                                                  !result) {
+                                                                await showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (BuildContext
+                                                                            context) {
+                                                                      return AlertDialog(
+                                                                        title: const Text(
+                                                                            'Greška'),
+                                                                        content:
+                                                                            const Text('Rezervaciju je moguće otkazati najkasnije 7 dana prije početka (check in).'),
+                                                                        actions: [
+                                                                          ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                              Navigator.of(context).pop();
+                                                                            },
+                                                                            child:
+                                                                                const Text('OK'),
+                                                                          ),
+                                                                        ],
+                                                                      );
+                                                                    });
+                                                                return;
+                                                              } else {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                                setState(() {
+                                                                  rezervacija
+                                                                          .otkazana =
+                                                                      true;
+                                                                });
+                                                              }
+                                                            },
+                                                            child: const Text(
+                                                                'Da'),
+                                                          ),
+                                                          ElevatedButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            },
+                                                            child: const Text(
+                                                                'Ne'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Check-in: '
+                                          '${DateFormat("dd. MM. yyyy.").format(rezervacija.checkIn)}',
+                                        ),
+                                        Text(
+                                          'Check-out: '
+                                          '${DateFormat("dd. MM. yyyy.").format(rezervacija.checkOut)}',
+                                        ),
+                                        Text(
+                                          'Broj osoba: ${rezervacija.brojOsoba}',
+                                        ),
+                                        Text(
+                                          'Tip sobe: ${rezervacija.tipSobe}',
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Cijena: ${rezervacija.cijena}',
+                                          style: const TextStyle(),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Status: ${rezervacija.otkazana ? 'Otkazana' : 'Aktivna'}',
+                                          style: const TextStyle(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Check-in: '
-                              '${DateFormat("dd. MM. yyyy.").format(rezervacija.checkIn)}',
-                            ),
-                            Text(
-                              'Check-out: '
-                              '${DateFormat("dd. MM. yyyy.").format(rezervacija.checkOut)}',
-                            ),
-                            Text(
-                              'Broj osoba: ${rezervacija.brojOsoba}',
-                            ),
-                            Text(
-                              'Tip sobe: ${rezervacija.tipSobe}',
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Cijena: ${rezervacija.cijena}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Status: ${rezervacija.otkazana ? 'Otkazana' : 'Aktivna'}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-        ),
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }

@@ -15,7 +15,8 @@ class DestinacijaDetailsScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DestinacijaDetailsScreenState createState() => _DestinacijaDetailsScreenState();
+  _DestinacijaDetailsScreenState createState() =>
+      _DestinacijaDetailsScreenState();
 }
 
 class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
@@ -34,12 +35,11 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        centerTitle: true,
         title: const Text(
           'Detalji destinacije',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
         ),
       ),
       body: FutureBuilder(
@@ -59,15 +59,16 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                     widget.destinacija.naziv ?? '',
                     style: const TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  widget.destinacija.slika != null && widget.destinacija.slika!.isNotEmpty
+                  widget.destinacija.slika != null &&
+                          widget.destinacija.slika!.isNotEmpty
                       ? SizedBox(
                           width: 200,
                           height: 200,
-                          child: imageFromBase64String(widget.destinacija.slika!),
+                          child:
+                              imageFromBase64String(widget.destinacija.slika!),
                         )
                       : const Text('Nema dostupne slike'),
                   const SizedBox(height: 16),
@@ -85,11 +86,13 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                             min: 0.0,
                             max: 5.0,
                             divisions: 5,
-                            onChanged: hasRated ? null : (value) {
-                              setStateLocal(() {
-                                rating = value;
-                              });
-                            },
+                            onChanged: hasRated
+                                ? null
+                                : (value) {
+                                    setStateLocal(() {
+                                      rating = value;
+                                    });
+                                  },
                           ),
                           Text(
                             'Vaša ocjena: $rating',
@@ -120,7 +123,8 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Već ste ocijenili ovu destinaciju."),
+                                content:
+                                    Text("Već ste ocijenili ovu destinaciju."),
                               ),
                             );
                           }
@@ -151,15 +155,15 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
       komentar: comment,
       destinacijaId: widget.destinacija.id!,
       korisnikId: APIService.korisnikId!,
-    ); 
+    );
 
     final jsonData = ocjena.toJson();
     final jsonString = jsonEncode(jsonData);
-  
+
     print('JSON data: $jsonString');
 
     await APIService.post("Ocjene", json.encode(jsonData));
-     setState(() {
+    setState(() {
       hasRated = true;
     });
     FocusScope.of(context).unfocus();
@@ -177,12 +181,16 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
   void navigateToReservation() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ReservationPage(destinacija: widget.destinacija)),
+      MaterialPageRoute(
+          builder: (context) =>
+              ReservationPage(destinacija: widget.destinacija)),
     );
   }
-  
+
   Future<bool> checkIfAlreadyRated() async {
-    final result = await APIService.checkIfAlreadyRated(APIService.korisnikId, widget.destinacija.id) == true;
+    final result = await APIService.checkIfAlreadyRated(
+            APIService.korisnikId, widget.destinacija.id) ==
+        true;
     hasRated = result;
     return result;
   }
