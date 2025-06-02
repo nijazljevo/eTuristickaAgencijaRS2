@@ -24,9 +24,11 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
 
   Future<void> fetchDestinacijaData() async {
     try {
-      final List<dynamic>? fetchedData = await APIService.get('Destinacije', null);
+      final List<dynamic>? fetchedData =
+          await APIService.get('Destinacije', null);
       if (fetchedData != null) {
-        final List<Destinacija> fetchedDestinacije = fetchedData.map((json) => Destinacija.fromJson(json)).toList();
+        final List<Destinacija> fetchedDestinacije =
+            fetchedData.map((json) => Destinacija.fromJson(json)).toList();
         setState(() {
           destinacije = fetchedDestinacije;
         });
@@ -36,7 +38,8 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Greška'),
-              content: const Text('Došlo je do greške prilikom dohvata podataka destinacija.'),
+              content: const Text(
+                  'Došlo je do greške prilikom dohvata podataka destinacija.'),
               actions: [
                 ElevatedButton(
                   onPressed: () {
@@ -56,7 +59,8 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Greška'),
-            content: const Text('Došlo je do greške prilikom dohvata podataka destinacija.'),
+            content: const Text(
+                'Došlo je do greške prilikom dohvata podataka destinacija.'),
             actions: [
               ElevatedButton(
                 onPressed: () {
@@ -75,12 +79,11 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        centerTitle: true,
+        title: const Text(
           'Destinacije',
-          style: TextStyle(
-            color: Colors.black, // Crna boja teksta
-            fontWeight: FontWeight.bold, // Boldiranje teksta
-          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -98,7 +101,8 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => DestinacijaDetailsScreen(destinacija: destinacija),
+                              builder: (context) => DestinacijaDetailsScreen(
+                                  destinacija: destinacija),
                             ),
                           );
                         },
@@ -106,7 +110,7 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
                           destinacija.naziv ?? '',
                           style: TextStyle(
                             color: Colors.black, // Crna boja teksta
-                            fontWeight: FontWeight.bold, // Boldiranje teksta
+                            // Boldiranje teksta
                           ),
                         ),
                       ),

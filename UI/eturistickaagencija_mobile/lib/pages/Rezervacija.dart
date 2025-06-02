@@ -24,9 +24,13 @@ class _ReservationPageState extends State<ReservationPage> {
   List<Hotel> _hotel = [];
   Hotel? selectedHotel;
   late int _selectedHotelId;
-  DateTime? selectedDate;
+  DateTime? checkIn;
+  DateTime? checkOut;
+  int brojOsoba = 1;
   bool isCancelled = false;
   double price = 0.0;
+  TextEditingController tipSobeController = TextEditingController();
+  String selectedTipSobe = "";
 
   @override
   void initState() {
@@ -40,7 +44,9 @@ class _ReservationPageState extends State<ReservationPage> {
     final List<Hotel>? hotels = await APIService.getHoteli();
     if (hotels != null) {
       setState(() {
-        _hotel = hotels.where((hotel) => hotel.gradId == widget.destinacija.gradId).toList();
+        _hotel = hotels
+            .where((hotel) => hotel.gradId == widget.destinacija.gradId)
+            .toList();
 
         if (!_hotel.any((hotel) => hotel.id == _selectedHotelId)) {
           _selectedHotelId = (_hotel.isNotEmpty ? _hotel.first.id : -1)!;
@@ -55,67 +61,75 @@ class _ReservationPageState extends State<ReservationPage> {
     });
   }
 
-Future<void> submitReservation() async {
-  if (APIService.korisnikId != null && selectedDate != null) {
-    List<Rezervacije>? reservations = await APIService.getReservationsForUserAndDate(
-      APIService.korisnikId!,
-      selectedDate!,
-    );
+  Future<void> submitReservation() async {
+    if (APIService.korisnikId != null &&
+        checkIn != null &&
+        checkOut != null &&
+        selectedTipSobe.isNotEmpty) {
+      List<Rezervacije>? reservations =
+          await APIService.getReservationsForUserAndDate(
+        APIService.korisnikId!,
+        DateTime.now(),
+      );
 
-    if (reservations != null) {
-      bool alreadyReserved = false;
-      for (Rezervacije reservation in reservations) {
-        if (reservation.datumRezervacije.isAtSameMomentAs(selectedDate!)) {
-          alreadyReserved = true;
-          break;
+      if (reservations != null) {
+        bool alreadyReserved = false;
+        for (Rezervacije reservation in reservations) {
+          if (reservation.datumRezervacije.isAtSameMomentAs(DateTime.now())) {
+            alreadyReserved = true;
+            break;
+          }
+        }
+
+        if (alreadyReserved) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: SizedBox(
+                height: 20,
+                child: Center(
+                    child: Text("Već ste rezervirali za odabrani datum.")),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
         }
       }
+      Rezervacije reservation = Rezervacije(
+        hotelId: _selectedHotelId,
+        korisnikId: APIService.korisnikId!,
+        datumRezervacije: DateTime.now(),
+        checkIn: checkIn!,
+        checkOut: checkOut!,
+        brojOsoba: brojOsoba,
+        tipSobe: selectedTipSobe,
+        otkazana: isCancelled,
+        cijena: price,
+      );
 
-      if (alreadyReserved) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: SizedBox(
-              height: 20,
-              child: Center(child: Text("Već ste rezervirali za odabrani datum.")),
-            ),
-            backgroundColor: Colors.red,
+      final jsonData = reservation.toJson();
+      final jsonString = jsonEncode(jsonData);
+      print('JSON data: $jsonString');
+      await APIService.post("Rezervacija", json.encode(jsonData));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: SizedBox(
+            height: 20,
+            child: Center(child: Text("Uspješno")),
           ),
-        );
-        return;
-      }
-    }
-    Rezervacije reservation = Rezervacije(
-      hotelId: _selectedHotelId,
-      korisnikId: APIService.korisnikId!,
-      datumRezervacije: selectedDate!,
-      otkazana: isCancelled,
-      cijena: price,
-    );
-
-    final jsonData = reservation.toJson();
-    final jsonString = jsonEncode(jsonData);
-    print('JSON data: $jsonString');
-    await APIService.post("Rezervacija", json.encode(jsonData));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: SizedBox(
-          height: 20,
-          child: Center(child: Text("Uspješno")),
+          backgroundColor: Color.fromARGB(255, 9, 100, 13),
         ),
-        backgroundColor: Color.fromARGB(255, 9, 100, 13),
-      ),
-    );
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OnlinePaymentScreen(reservation: reservation),
-      ),
-    );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnlinePaymentScreen(reservation: reservation),
+        ),
+      );
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +137,9 @@ Future<void> submitReservation() async {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          centerTitle: true,
           title: Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(widget.destinacija.naziv!),
@@ -155,31 +172,97 @@ Future<void> submitReservation() async {
                 'Korisnik: ${APIService.username}',
               ),
               const SizedBox(height: 16),
-              const Text('Datum rezervacije:'),
               ElevatedButton(
                 onPressed: () async {
-                  final DateTime? pickedDate = await showDatePicker(
+                  final DateTime? pickedCheckIn = await showDatePicker(
                     context: context,
                     initialDate: DateTime.now(),
                     firstDate: DateTime.now(),
                     lastDate: DateTime(2100),
                   );
-                  if (pickedDate != null) {
+                  if (pickedCheckIn != null) {
                     setState(() {
-                      selectedDate = pickedDate;
+                      checkIn = pickedCheckIn;
+                    });
+
+                    if (checkOut != null && checkOut!.isBefore(pickedCheckIn)) {
+                      setState(() {
+                        checkOut = null;
+                      });
+                    }
+                  }
+                },
+                child: Text(checkIn != null
+                    ? DateFormat('dd.MM.yyyy').format(checkIn!)
+                    : 'Odaberi check-in datum'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final DateTime? pickedCheckOut = await showDatePicker(
+                    context: context,
+                    initialDate:
+                        checkIn?.add(const Duration(days: 1)) ?? DateTime.now(),
+                    firstDate:
+                        checkIn?.add(const Duration(days: 1)) ?? DateTime.now(),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedCheckOut != null) {
+                    setState(() {
+                      checkOut = pickedCheckOut;
                     });
                   }
                 },
-                child: Text(
-                  selectedDate != null
-                      ? DateFormat('dd.MM.yyyy').format(selectedDate!)
-                      : 'Odaberi datum',
-                ),
+                child: Text(checkOut != null
+                    ? DateFormat('dd.MM.yyyy').format(checkOut!)
+                    : 'Odaberi check-out datum'),
               ),
-             
               const SizedBox(height: 16),
               Text('Cijena: $price'),
               const SizedBox(height: 16),
+              TextField(
+                decoration: const InputDecoration(
+                    labelText: 'Broj osoba', border: OutlineInputBorder()),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    brojOsoba = int.tryParse(value) ?? 1;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: DropdownMenu<String>(
+                    controller: tipSobeController,
+                    initialSelection: selectedTipSobe,
+                    width: MediaQuery.of(context).size.width - 40,
+                    dropdownMenuEntries: const [
+                      DropdownMenuEntry<String>(
+                          value: "", label: "Odaberi tip sobe"),
+                      DropdownMenuEntry<String>(
+                          value: "Jednokrevetna", label: "Jednokrevetna"),
+                      DropdownMenuEntry<String>(
+                          value: "Dvokrevetna", label: "Dvokrevetna"),
+                      DropdownMenuEntry<String>(
+                          value: "Trokrevetna", label: "Trokrevetna"),
+                    ],
+                    label: const Text('Tip Sobe'),
+                    trailingIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          selectedTipSobe = "";
+                          tipSobeController.clear();
+                        });
+                      },
+                    ),
+                    onSelected: (value) {
+                      setState(() {
+                        selectedTipSobe = value ?? "";
+                      });
+                    }),
+              ),
+              const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
                   submitReservation();

@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../model/rezervacija.dart';
 import '../services/APIService.dart';
-import 'Home.dart'; 
+import 'Home.dart';
 
 class OnlinePaymentScreen extends StatefulWidget {
   final Rezervacije reservation;
-  const OnlinePaymentScreen({Key? key, required this.reservation}) : super(key: key);
+  const OnlinePaymentScreen({Key? key, required this.reservation})
+      : super(key: key);
 
   @override
   _OnlinePaymentScreenState createState() => _OnlinePaymentScreenState();
@@ -16,21 +17,25 @@ class OnlinePaymentScreen extends StatefulWidget {
 
 class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   Map<String, dynamic>? paymentIntent;
-@override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance?.addPostFrameCallback((_) async {
       await makePayment();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        centerTitle: true,
         title: const Text('Placanje'),
       ),
       body: Center(
-        child: CircularProgressIndicator(), 
+        child: CircularProgressIndicator(),
       ),
     );
   }
@@ -67,7 +72,10 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.check_circle, color: Colors.green,),
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                    ),
                     Text("Payment Successful"),
                   ],
                 ),
@@ -79,7 +87,6 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
         paymentIntent = null;
 
         await Future.delayed(const Duration(seconds: 4));
-
 
         Navigator.pushReplacement(
           context,
@@ -115,14 +122,13 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
       print('JSON data for payment: $jsonString');
 
       await APIService.post("Uplate", jsonData);
-
-
     } catch (error) {
       print('Greška prilikom komunikacije s API-jem: $error');
     }
   }
 
-  Future<Map<String, dynamic>> createPaymentIntent(String amount, String currency) async {
+  Future<Map<String, dynamic>> createPaymentIntent(
+      String amount, String currency) async {
     try {
       int calculatedAmount = calculateAmount(amount);
       Map<String, String> body = {
@@ -134,7 +140,8 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
       var response = await http.post(
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         headers: {
-          'Authorization': 'Bearer sk_test_51LSdMQF0OoH4ZYTibzQ1uvjfQ66v1sSAWorOpsCw8NOjx6jjpLljlcHdVHqPQ0SCwkcUToScoEbbd1wRi6ghKsim00kO8gaDoO',
+          'Authorization':
+              'Bearer sk_test_51LSdMQF0OoH4ZYTibzQ1uvjfQ66v1sSAWorOpsCw8NOjx6jjpLljlcHdVHqPQ0SCwkcUToScoEbbd1wRi6ghKsim00kO8gaDoO',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,
