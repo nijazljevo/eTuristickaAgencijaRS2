@@ -34,7 +34,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
         centerTitle: true,
         title: const Text('Placanje'),
       ),
-      body: Center(
+      body: const Center(
         child: CircularProgressIndicator(),
       ),
     );
@@ -66,12 +66,12 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
       await Stripe.instance.presentPaymentSheet().then((value) async {
         showDialog(
           context: context,
-          builder: (_) => AlertDialog(
+          builder: (_) => const AlertDialog(
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  children: const [
+                  children: [
                     Icon(
                       Icons.check_circle,
                       color: Colors.green,
@@ -90,7 +90,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Home()),
+          MaterialPageRoute(builder: (context) => const Home()),
         );
       }).onError((error, stackTrace) {
         print('Error is:--->$error $stackTrace');
@@ -106,6 +106,11 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     } catch (e) {
       print('$e');
     }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Home()),
+    );
   }
 
   Future<void> savePaymentData() async {

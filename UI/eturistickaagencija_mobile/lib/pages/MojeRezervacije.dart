@@ -156,6 +156,9 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                                                               if (result ==
                                                                       null ||
                                                                   !result) {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
                                                                 await showDialog(
                                                                     context:
                                                                         context,

@@ -140,7 +140,7 @@ class _ProfilState extends State<Profil> {
 
                               final response = await http.put(
                                 Uri.parse(
-                                    'http://10.0.2.2:7073/Korisnici/${korisnik.id}'),
+                                    'http://192.168.1.7:5001/Korisnici/${korisnik.id}'),
                                 headers: {'Content-Type': 'application/json'},
                                 body: jsonEncode(request.toJson()),
                               );
