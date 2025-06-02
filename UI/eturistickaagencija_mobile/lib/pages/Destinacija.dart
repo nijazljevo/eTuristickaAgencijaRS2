@@ -86,49 +86,82 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
           'Destinacije',
         ),
       ),
-      body: SingleChildScrollView(
-        child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Naziv')),
-            DataColumn(label: Text('Slika')),
-          ],
-          rows: destinacije
-              .map(
-                (destinacija) => DataRow(
-                  cells: [
-                    DataCell(
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => DestinacijaDetailsScreen(
-                                  destinacija: destinacija),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          destinacija.naziv ?? '',
-                          style: TextStyle(
-                            color: Colors.black, // Crna boja teksta
-                            // Boldiranje teksta
-                          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: destinacije.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.8,
+                ),
+                itemCount: destinacije.length,
+                itemBuilder: (context, index) {
+                  final destinacija = destinacije[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => DestinacijaDetailsScreen(
+                              destinacija: destinacija),
                         ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      color: Theme.of(context).colorScheme.surface,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
+                            child: destinacija.slika != null &&
+                                    destinacija.slika != ''
+                                ? Image(
+                                    image: imageFromBase64String(
+                                            destinacija.slika!)
+                                        .image,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    height: 120,
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.image_not_supported,
+                                        size: 48, color: Colors.grey),
+                                  ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  destinacija.naziv ?? '',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    DataCell(
-                      destinacija.slika != null && destinacija.slika != ''
-                          ? SizedBox(
-                              width: 100,
-                              height: 100,
-                              child: imageFromBase64String(destinacija.slika!),
-                            )
-                          : const Icon(Icons.image_not_supported),
-                    ),
-                  ],
-                ),
-              )
-              .toList(),
-        ),
+                  );
+                },
+              ),
       ),
     );
   }
