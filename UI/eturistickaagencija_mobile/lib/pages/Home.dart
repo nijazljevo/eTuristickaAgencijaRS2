@@ -1,3 +1,4 @@
+import 'package:eturistickaagencija_mobile/utils/util.dart';
 import 'package:flutter/material.dart';
 import '../model/destinacija.dart';
 import '../services/APIService.dart';
@@ -29,43 +30,6 @@ class _HomeState extends State<Home> {
       print('Greška prilikom dohvata preporučenih destinacija: $e');
       return null;
     }
-  }
-
-  Widget preporucenaHotelWidget(Destinacija destinacija) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                DestinacijaDetailsScreen(destinacija: destinacija),
-          ),
-        );
-      },
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Destinacija: ${destinacija.naziv}',
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -100,12 +64,22 @@ class _HomeState extends State<Home> {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else {
                     if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                      return ListView.builder(
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          Destinacija destinacija = snapshot.data![index];
-                          return preporucenaHotelWidget(destinacija);
-                        },
+                      return Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.8,
+                          ),
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            final destinacija = snapshot.data![index];
+                            return preporucenaHotelWidget(destinacija);
+                          },
+                        ),
                       );
                     } else {
                       return const Center(
@@ -121,6 +95,67 @@ class _HomeState extends State<Home> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget preporucenaHotelWidget(Destinacija destinacija) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                DestinacijaDetailsScreen(destinacija: destinacija),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        color: Theme.of(context).colorScheme.surface,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: destinacija.slika != null && destinacija.slika != ''
+                  ? Image(
+                      image: imageFromBase64String(destinacija.slika!).image,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      height: 120,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.image_not_supported,
+                          size: 48, color: Colors.grey),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    destinacija.naziv ?? '',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -163,6 +198,7 @@ class MainDrawer extends StatelessWidget {
               "Početna",
             ),
             onTap: () {
+              Navigator.of(context).pop();
               Navigator.of(context).pushReplacementNamed('Home');
             },
           ),
@@ -175,6 +211,7 @@ class MainDrawer extends StatelessWidget {
               "Profil",
             ),
             onTap: () {
+              Navigator.of(context).pop();
               Navigator.of(context).pushNamed('Profil');
             },
           ),
@@ -187,6 +224,7 @@ class MainDrawer extends StatelessWidget {
               "Hotel",
             ),
             onTap: () {
+              Navigator.of(context).pop();
               Navigator.of(context).pushNamed('HotelListPage');
             },
           ),
@@ -199,6 +237,7 @@ class MainDrawer extends StatelessWidget {
               "Destinacija",
             ),
             onTap: () {
+              Navigator.of(context).pop();
               Navigator.of(context).pushNamed('DestinacijaListPage');
             },
           ),
@@ -211,6 +250,7 @@ class MainDrawer extends StatelessWidget {
               "Moje rezervacije",
             ),
             onTap: () {
+              Navigator.of(context).pop();
               Navigator.of(context).pushNamed('MojeRezervacijeScreen');
             },
           ),
@@ -223,6 +263,7 @@ class MainDrawer extends StatelessWidget {
               "Odjava",
             ),
             onTap: () {
+              Navigator.of(context).pop();
               showDialog(
                 context: context,
                 builder: (BuildContext context) {

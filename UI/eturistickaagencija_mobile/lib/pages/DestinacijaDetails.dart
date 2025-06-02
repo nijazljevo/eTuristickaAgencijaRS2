@@ -62,15 +62,19 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  widget.destinacija.slika != null &&
-                          widget.destinacija.slika!.isNotEmpty
-                      ? SizedBox(
-                          width: 200,
-                          height: 200,
-                          child:
-                              imageFromBase64String(widget.destinacija.slika!),
-                        )
-                      : const Text('Nema dostupne slike'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      widget.destinacija.slika != null &&
+                              widget.destinacija.slika!.isNotEmpty
+                          ? SizedBox(
+                              height: 200,
+                              child: imageFromBase64String(
+                                  widget.destinacija.slika!),
+                            )
+                          : const Text('Nema dostupne slike')
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'Ocijenite destinaciju:',
@@ -82,6 +86,10 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                       return Column(
                         children: [
                           Slider(
+                            inactiveColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withAlpha(100),
                             value: rating,
                             min: 0.0,
                             max: 5.0,
@@ -95,7 +103,7 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                                   },
                           ),
                           Text(
-                            'Vaša ocjena: $rating',
+                            'Vaša ocjena: ${rating.toInt()}',
                             style: const TextStyle(fontSize: 18),
                           ),
                         ],

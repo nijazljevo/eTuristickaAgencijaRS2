@@ -1,3 +1,4 @@
+import 'package:eturistickaagencija_mobile/components/custom_date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -21,21 +22,27 @@ class ReservationPage extends StatefulWidget {
 }
 
 class _ReservationPageState extends State<ReservationPage> {
-  List<Hotel> _hotel = [];
+  List<Hotel> _hoteli = [];
   Hotel? selectedHotel;
   late int _selectedHotelId;
-  DateTime? checkIn;
-  DateTime? checkOut;
   int brojOsoba = 1;
   bool isCancelled = false;
   double price = 0.0;
   TextEditingController tipSobeController = TextEditingController();
+  TextEditingController checkInController = TextEditingController();
+  TextEditingController checkOutController = TextEditingController();
   String selectedTipSobe = "";
+  late bool _isLoading;
 
   @override
   void initState() {
-    super.initState();
+    _isLoading = true;
+    checkInController.text = DateFormat("dd. MM. yyyy.")
+        .format(DateTime.now().add(const Duration(days: 1)));
+    checkOutController.text = DateFormat("dd. MM. yyyy.")
+        .format(DateTime.now().add(const Duration(days: 1)));
     _selectedHotelId = -1;
+    super.initState();
     fetchHoteliForDestinacija();
     calculatePrice();
   }
@@ -44,15 +51,19 @@ class _ReservationPageState extends State<ReservationPage> {
     final List<Hotel>? hotels = await APIService.getHoteli();
     if (hotels != null) {
       setState(() {
-        _hotel = hotels
+        _hoteli = hotels
             .where((hotel) => hotel.gradId == widget.destinacija.gradId)
             .toList();
 
-        if (!_hotel.any((hotel) => hotel.id == _selectedHotelId)) {
-          _selectedHotelId = (_hotel.isNotEmpty ? _hotel.first.id : -1)!;
+        if (!_hoteli.any((hotel) => hotel.id == _selectedHotelId)) {
+          _selectedHotelId = (_hoteli.isNotEmpty ? _hoteli.first.id : -1)!;
         }
       });
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void calculatePrice() {
@@ -63,8 +74,9 @@ class _ReservationPageState extends State<ReservationPage> {
 
   Future<void> submitReservation() async {
     if (APIService.korisnikId != null &&
-        checkIn != null &&
-        checkOut != null &&
+        _selectedHotelId != -1 &&
+        checkInController.text.isNotEmpty &&
+        checkOutController.text.isNotEmpty &&
         selectedTipSobe.isNotEmpty) {
       List<Rezervacije>? reservations =
           await APIService.getReservationsForUserAndDate(
@@ -95,12 +107,29 @@ class _ReservationPageState extends State<ReservationPage> {
           return;
         }
       }
+
+      DateTime checkIn =
+          DateFormat("dd. MM. yyyy.").parse(checkInController.text);
+
+      DateTime checkOut =
+          DateFormat("dd. MM. yyyy.").parse(checkOutController.text);
+
+      if (checkIn.isAfter(checkOut)) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            backgroundColor: Colors.red,
+            content: SizedBox(
+              height: 20,
+              child: Center(child: Text("Datumi nisu ispravni!")),
+            )));
+        return;
+      }
+
       Rezervacije reservation = Rezervacije(
         hotelId: _selectedHotelId,
         korisnikId: APIService.korisnikId!,
         datumRezervacije: DateTime.now(),
-        checkIn: checkIn!,
-        checkOut: checkOut!,
+        checkIn: checkIn,
+        checkOut: checkOut,
         brojOsoba: brojOsoba,
         tipSobe: selectedTipSobe,
         otkazana: isCancelled,
@@ -128,6 +157,14 @@ class _ReservationPageState extends State<ReservationPage> {
           builder: (context) => OnlinePaymentScreen(reservation: reservation),
         ),
       );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          backgroundColor: Colors.red,
+          content: SizedBox(
+            height: 20,
+            child: Center(child: Text("Molimo vas, popunite sva polja.")),
+          )));
+      return;
     }
   }
 
@@ -146,133 +183,114 @@ class _ReservationPageState extends State<ReservationPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Odaberi Hotel:'),
-              DropdownButton<Hotel>(
-                value: selectedHotel,
-                onChanged: (Hotel? newValue) {
-                  setState(() {
-                    selectedHotel = newValue;
-                  });
-                },
-                items: _hotel.map((Hotel hotel) {
-                  return DropdownMenuItem<Hotel>(
-                    value: hotel,
-                    child: Text(hotel.naziv ?? ""),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Korisnik: ${APIService.username}',
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final DateTime? pickedCheckIn = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedCheckIn != null) {
-                    setState(() {
-                      checkIn = pickedCheckIn;
-                    });
-
-                    if (checkOut != null && checkOut!.isBefore(pickedCheckIn)) {
-                      setState(() {
-                        checkOut = null;
-                      });
-                    }
-                  }
-                },
-                child: Text(checkIn != null
-                    ? DateFormat('dd.MM.yyyy').format(checkIn!)
-                    : 'Odaberi check-in datum'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final DateTime? pickedCheckOut = await showDatePicker(
-                    context: context,
-                    initialDate:
-                        checkIn?.add(const Duration(days: 1)) ?? DateTime.now(),
-                    firstDate:
-                        checkIn?.add(const Duration(days: 1)) ?? DateTime.now(),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedCheckOut != null) {
-                    setState(() {
-                      checkOut = pickedCheckOut;
-                    });
-                  }
-                },
-                child: Text(checkOut != null
-                    ? DateFormat('dd.MM.yyyy').format(checkOut!)
-                    : 'Odaberi check-out datum'),
-              ),
-              const SizedBox(height: 16),
-              Text('Cijena: $price'),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                    labelText: 'Broj osoba', border: OutlineInputBorder()),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  setState(() {
-                    brojOsoba = int.tryParse(value) ?? 1;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: DropdownMenu<String>(
-                    controller: tipSobeController,
-                    initialSelection: selectedTipSobe,
-                    width: MediaQuery.of(context).size.width - 40,
-                    dropdownMenuEntries: const [
-                      DropdownMenuEntry<String>(
-                          value: "", label: "Odaberi tip sobe"),
-                      DropdownMenuEntry<String>(
-                          value: "Jednokrevetna", label: "Jednokrevetna"),
-                      DropdownMenuEntry<String>(
-                          value: "Dvokrevetna", label: "Dvokrevetna"),
-                      DropdownMenuEntry<String>(
-                          value: "Trokrevetna", label: "Trokrevetna"),
-                    ],
-                    label: const Text('Tip Sobe'),
-                    trailingIcon: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Odaberi Hotel:'),
+                    DropdownMenu<int>(
+                        initialSelection: _selectedHotelId,
+                        width: MediaQuery.of(context).size.width - 32,
+                        dropdownMenuEntries: _hoteli.map((Hotel hotel) {
+                          return DropdownMenuEntry<int>(
+                            value: hotel.id!,
+                            label: hotel.naziv ?? "",
+                          );
+                        }).toList(),
+                        label: const Text('Hotel'),
+                        onSelected: (value) {
+                          setState(() {
+                            _selectedHotelId = value ?? -1;
+                          });
+                        }),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Korisnik: ${APIService.username}',
+                    ),
+                    const SizedBox(height: 16),
+                    CustomDatePicker(
+                      dateController: checkInController,
+                      hint: "Check-in datum: ",
+                    ),
+                    const SizedBox(height: 16),
+                    CustomDatePicker(
+                      dateController: checkOutController,
+                      hint: "Check-out datum: ",
+                      validator: (value) {
+                        var date = DateFormat("dd. MM. yyyy.")
+                            .parseStrict(checkInController.text);
+                        var date1 =
+                            DateFormat("dd. MM. yyyy.").parseStrict(value);
+                        if (date.isAfter(date1)) {
+                          return "Check-out datum ne može biti prije check-in datuma";
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Cijena: $price'),
+                    const SizedBox(height: 16),
+                    TextField(
+                      decoration: const InputDecoration(
+                          labelText: 'Broj osoba',
+                          border: OutlineInputBorder()),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
                         setState(() {
-                          selectedTipSobe = "";
-                          tipSobeController.clear();
+                          brojOsoba = int.tryParse(value) ?? 1;
                         });
                       },
                     ),
-                    onSelected: (value) {
-                      setState(() {
-                        selectedTipSobe = value ?? "";
-                      });
-                    }),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: DropdownMenu<String>(
+                          controller: tipSobeController,
+                          initialSelection: selectedTipSobe,
+                          width: MediaQuery.of(context).size.width - 32,
+                          dropdownMenuEntries: const [
+                            DropdownMenuEntry<String>(
+                                value: "", label: "Odaberi tip sobe"),
+                            DropdownMenuEntry<String>(
+                                value: "Jednokrevetna", label: "Jednokrevetna"),
+                            DropdownMenuEntry<String>(
+                                value: "Dvokrevetna", label: "Dvokrevetna"),
+                            DropdownMenuEntry<String>(
+                                value: "Trokrevetna", label: "Trokrevetna"),
+                          ],
+                          label: const Text('Tip Sobe'),
+                          trailingIcon: IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                selectedTipSobe = "";
+                                tipSobeController.clear();
+                              });
+                            },
+                          ),
+                          onSelected: (value) {
+                            setState(() {
+                              selectedTipSobe = value ?? "";
+                            });
+                          }),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: () {
+                        submitReservation();
+                      },
+                      child: const Text('Potvrdi rezervaciju'),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  submitReservation();
-                },
-                child: const Text('Potvrdi rezervaciju'),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
