@@ -132,11 +132,10 @@ class _DestinacijaListPageState extends State<DestinacijaListPage> {
                                     height: 120,
                                     fit: BoxFit.cover,
                                   )
-                                : Container(
+                                : Image.asset(
+                                    "assets/images/hotel-placeholder.jpg",
                                     height: 120,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.image_not_supported,
-                                        size: 48, color: Colors.grey),
+                                    fit: BoxFit.cover,
                                   ),
                           ),
                           Padding(

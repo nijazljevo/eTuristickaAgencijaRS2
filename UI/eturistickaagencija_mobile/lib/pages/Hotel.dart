@@ -317,21 +317,26 @@ class _HotelListPageState extends State<HotelListPage> {
                   child: Text(
                       "Grad: ${gradovi.where((e) => e.id == hotel.gradId).first.naziv}"),
                 ),
-                if (hotel.slika != null && hotel.slika!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: imageFromBase64String(hotel.slika!),
-                      ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
+                    child: (hotel.slika != null && hotel.slika!.isNotEmpty)
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: imageFromBase64String(hotel.slika!),
+                          )
+                        : Image.asset(
+                            "assets/images/hotel-placeholder.jpg",
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
                   ),
+                ),
                 if (hotel.naziv != null && hotel.naziv!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(

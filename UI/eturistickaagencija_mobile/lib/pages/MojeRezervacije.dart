@@ -184,6 +184,29 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                                                                     });
                                                                 return;
                                                               } else {
+                                                                await showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (BuildContext
+                                                                            context) {
+                                                                      return AlertDialog(
+                                                                        title: const Text(
+                                                                            'Otkazivanje rezervacije'),
+                                                                        content:
+                                                                            const Text('Rezervacija je uspješno otkazana.'),
+                                                                        actions: [
+                                                                          ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                              Navigator.of(context).pop();
+                                                                            },
+                                                                            child:
+                                                                                const Text('OK'),
+                                                                          ),
+                                                                        ],
+                                                                      );
+                                                                    });
                                                                 Navigator.of(
                                                                         context)
                                                                     .pop();
