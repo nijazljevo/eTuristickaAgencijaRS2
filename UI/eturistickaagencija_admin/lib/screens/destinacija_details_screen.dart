@@ -399,8 +399,13 @@ class _DestinacijaDetailsScreenState extends State<DestinacijaDetailsScreen> {
                             _imageBytes!,
                             height: 120,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Text(
+                              'Greška pri učitavanju slike',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
-                        ),
+                        )
                     ],
                   ),
                 );
