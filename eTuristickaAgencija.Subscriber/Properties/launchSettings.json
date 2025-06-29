@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "eTuristickaAgencija.Subscriber": {
+      "commandName": "Project"
+      
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

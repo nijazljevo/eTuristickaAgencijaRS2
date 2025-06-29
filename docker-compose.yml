@@ -1,0 +1,69 @@
+version: '3'
+services:
+#mssql docker
+ 
+  eturiatickaagencija-sql:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=ASas.,12
+      - MSSQL_PID=Developer
+    ports:
+      - 1401:1433
+    networks:
+      - eturiatickaagencijanet
+
+  eturiatickaagencija-api:
+    restart: unless-stopped
+    build:
+      context: .
+    environment:
+      - ConnectionStrings:DefaultConnection=Server=eturiatickaagencija-sql,1433;Database=TuristickaAgencija;User=sa;Password=ASas.,12;ConnectRetryCount=0;TrustServerCertificate=True; MultipleActiveResultSets=true
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+    ports:
+      - 7073:7073
+    networks:
+      - eturiatickaagencijanet
+    depends_on:
+      - eturiatickaagencija-sql
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - eturiatickaagencijanet  
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  
+  rabbitmq-service:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./eTuristickaAgencija.Subscriber/Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      
+    depends_on:
+      - rabbitmq
+    networks:
+      - eturiatickaagencijanet
+volumes:
+  rabbitmq_data:
+  
+networks:
+  network: {}
+  eturiatickaagencijanet:
+    driver: bridge
